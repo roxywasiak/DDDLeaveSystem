@@ -1,0 +1,36 @@
+package com.example.leave.application.query;
+
+import com.example.leave.application.dto.EmployeeDto;
+import com.example.leave.application.exception.EmployeeNotFoundException;
+import com.example.leave.application.mapper.EmployeeMapper;
+import com.example.leave.domain.repository.EmployeeRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class EmployeeQueryHandler {
+
+    private final EmployeeRepository employeeRepository;
+    private final EmployeeMapper employeeMapper;
+
+    public List<EmployeeDto> getAllEmployees() {
+        return employeeMapper.toDtoList(employeeRepository.findAll());
+    }
+
+    public EmployeeDto getEmployeeById(Long id) {
+        return employeeRepository.findById(id)
+                .map(employeeMapper::toDto)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
+    }
+
+    public EmployeeDto getEmployeeByEmail(String email) {
+        return employeeRepository.findByEmail(email)
+                .map(employeeMapper::toDto)
+                .orElseThrow(() -> new EmployeeNotFoundException(email));
+    }
+}
