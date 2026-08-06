@@ -263,7 +263,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"ANNUAL\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-06-05\",\n  \"reason\": \"Family holiday\"\n}"
+              "raw": "{\n  \"type\": \"ANNUAL\",\n  \"startDate\": \"2027-06-01\",\n  \"endDate\": \"2027-06-05\",\n  \"reason\": \"Family holiday\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/leaves",
@@ -451,30 +451,41 @@
           }
         },
         {
-          "name": "Cancel Leave (Employee)",
+          "name": "Apply for Leave to Cancel",
           "event": [
             {
-              "listen": "prerequest",
+              "listen": "test",
               "script": {
                 "exec": [
-                  "// First create a new leave to cancel",
-                  "pm.sendRequest({",
-                  "    url: pm.collectionVariables.get('baseUrl') + '/api/leaves',",
-                  "    method: 'POST',",
-                  "    header: {",
-                  "        'Content-Type': 'application/json',",
-                  "        'Authorization': 'Bearer ' + pm.collectionVariables.get('employeeToken')",
-                  "    },",
-                  "    body: {",
-                  "        mode: 'raw',",
-                  "        raw: JSON.stringify({type:'SICK',startDate:'2026-07-01',endDate:'2026-07-03',reason:'Flu'})",
-                  "    }",
-                  "}, function(err, res) {",
-                  "    pm.collectionVariables.set('leaveId', res.json().id);",
-                  "});"
+                  "pm.test('Status is 201', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('leaveId', json.id);"
                 ]
               }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"SICK\",\n  \"startDate\": \"2027-07-01\",\n  \"endDate\": \"2027-07-03\",\n  \"reason\": \"Flu\"\n}"
             },
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Leave (Employee)",
+          "event": [
             {
               "listen": "test",
               "script": {
@@ -503,29 +514,41 @@
           }
         },
         {
-          "name": "Reject Leave (Manager)",
+          "name": "Apply for Leave to Reject",
           "event": [
             {
-              "listen": "prerequest",
+              "listen": "test",
               "script": {
                 "exec": [
-                  "pm.sendRequest({",
-                  "    url: pm.collectionVariables.get('baseUrl') + '/api/leaves',",
-                  "    method: 'POST',",
-                  "    header: {",
-                  "        'Content-Type': 'application/json',",
-                  "        'Authorization': 'Bearer ' + pm.collectionVariables.get('employeeToken')",
-                  "    },",
-                  "    body: {",
-                  "        mode: 'raw',",
-                  "        raw: JSON.stringify({type:'UNPAID',startDate:'2026-08-01',endDate:'2026-08-10',reason:'Personal'})",
-                  "    }",
-                  "}, function(err, res) {",
-                  "    pm.collectionVariables.set('leaveId', res.json().id);",
-                  "});"
+                  "pm.test('Status is 201', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('leaveId', json.id);"
                 ]
               }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"UNPAID\",\n  \"startDate\": \"2027-08-01\",\n  \"endDate\": \"2027-08-10\",\n  \"reason\": \"Personal\"\n}"
             },
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves"]
+            }
+          }
+        },
+        {
+          "name": "Reject Leave (Manager)",
+          "event": [
             {
               "listen": "test",
               "script": {
