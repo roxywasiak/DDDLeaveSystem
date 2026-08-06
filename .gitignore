@@ -6,4 +6,5 @@ target/
 *.iml
 .DS_Store
 *.cer
+*.der
 *.md
