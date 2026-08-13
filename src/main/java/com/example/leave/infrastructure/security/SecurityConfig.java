@@ -61,6 +61,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/employees/**").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/leaves/*/approve", "/api/leaves/*/reject")
                     .hasRole("MANAGER")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers
