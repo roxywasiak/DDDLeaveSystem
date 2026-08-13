@@ -63,7 +63,15 @@ public class SecurityConfig {
                     .hasRole("MANAGER")
                 .anyRequest().authenticated()
             )
-            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.disable())
+                .contentTypeOptions(contentType -> {})
+                .httpStrictTransportSecurity(hsts -> {})
+                .addHeaderWriter((request, response) -> {
+                    response.setHeader("X-Powered-By", "");
+                    response.setHeader("Server", "");
+                })
+            )
             .authenticationProvider(authenticationProvider)
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
