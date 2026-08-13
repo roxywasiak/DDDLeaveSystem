@@ -62,6 +62,10 @@ public class LeaveContextFacade {
         return leaveQueryHandler.getAllowance(employeeId);
     }
 
+    public LeaveAllowanceDto amendAllowance(Long employeeId, AmendAllowanceCommand command) {
+        return leaveCommandHandler.amendAllowance(employeeId, command);
+    }
+
     // Employee queries
     public List<EmployeeDto> getAllEmployees() {
         return employeeQueryHandler.getAllEmployees();

@@ -43,9 +43,17 @@ public class DataSeeder {
             leaveAllowanceRepository.save(new LeaveAllowance(manager.getId(), year, 25));
             leaveAllowanceRepository.save(new LeaveAllowance(employee.getId(), year, 25));
 
+            employeeRepository.save(new Employee(
+                    "admin@example.com",
+                    passwordEncoder.encode("password123"),
+                    "System Admin",
+                    Role.ADMIN
+            ));
+
             System.out.println("=== Seeded default users ===");
             System.out.println("Manager:  manager@example.com / password123");
             System.out.println("Employee: employee@example.com / password123");
+            System.out.println("Admin:    admin@example.com / password123");
         }
     }
 }

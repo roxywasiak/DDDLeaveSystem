@@ -1,9 +1,12 @@
 package com.example.leave.application.command;
 
+import com.example.leave.application.dto.AmendAllowanceCommand;
 import com.example.leave.application.dto.CreateLeaveCommand;
+import com.example.leave.application.dto.LeaveAllowanceDto;
 import com.example.leave.application.dto.LeaveDto;
 import com.example.leave.application.exception.LeaveAllowanceNotFoundException;
 import com.example.leave.application.exception.LeaveRequestNotFoundException;
+import com.example.leave.application.mapper.LeaveAllowanceMapper;
 import com.example.leave.application.mapper.LeaveMapper;
 import com.example.leave.domain.event.LeaveApprovedEvent;
 import com.example.leave.domain.event.LeaveRejectedEvent;
@@ -26,6 +29,7 @@ public class LeaveCommandHandler {
     private final LeaveRepository leaveRepository;
     private final LeaveAllowanceRepository leaveAllowanceRepository;
     private final LeaveMapper leaveMapper;
+    private final LeaveAllowanceMapper leaveAllowanceMapper;
     private final ApplicationEventPublisher eventPublisher;
 
     public LeaveDto createLeave(Long employeeId, CreateLeaveCommand command) {
@@ -79,5 +83,11 @@ public class LeaveCommandHandler {
         int year = LocalDate.now().getYear();
         return leaveAllowanceRepository.findByEmployeeIdAndYear(employeeId, year)
                 .orElseThrow(() -> new LeaveAllowanceNotFoundException(employeeId, year));
+    }
+
+    public LeaveAllowanceDto amendAllowance(Long employeeId, AmendAllowanceCommand command) {
+        LeaveAllowance allowance = findAllowanceOrThrow(employeeId);
+        allowance.amendTotalDays(command.getTotalDays());
+        return leaveAllowanceMapper.toDto(leaveAllowanceRepository.save(allowance));
     }
 }
