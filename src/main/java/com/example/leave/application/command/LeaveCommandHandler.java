@@ -2,13 +2,18 @@ package com.example.leave.application.command;
 
 import com.example.leave.application.dto.CreateLeaveCommand;
 import com.example.leave.application.dto.LeaveDto;
+import com.example.leave.application.exception.LeaveAllowanceNotFoundException;
 import com.example.leave.application.exception.LeaveRequestNotFoundException;
 import com.example.leave.application.mapper.LeaveMapper;
 import com.example.leave.domain.model.Leave;
+import com.example.leave.domain.model.LeaveAllowance;
+import com.example.leave.domain.repository.LeaveAllowanceRepository;
 import com.example.leave.domain.repository.LeaveRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class LeaveCommandHandler {
 
     private final LeaveRepository leaveRepository;
+    private final LeaveAllowanceRepository leaveAllowanceRepository;
     private final LeaveMapper leaveMapper;
 
     public LeaveDto createLeave(Long employeeId, CreateLeaveCommand command) {
@@ -32,6 +38,9 @@ public class LeaveCommandHandler {
     public LeaveDto approveLeave(Long leaveId) {
         Leave leave = findLeaveOrThrow(leaveId);
         leave.approve();
+        LeaveAllowance allowance = findAllowanceOrThrow(leave.getEmployeeId());
+        allowance.deduct(leave.getDurationInDays());
+        leaveAllowanceRepository.save(allowance);
         return leaveMapper.toDto(leaveRepository.save(leave));
     }
 
@@ -43,12 +52,24 @@ public class LeaveCommandHandler {
 
     public LeaveDto cancelLeave(Long leaveId, Long employeeId) {
         Leave leave = findLeaveOrThrow(leaveId);
+        boolean wasApproved = leave.getStatus().name().equals("APPROVED");
         leave.cancel(employeeId);
+        if (wasApproved) {
+            LeaveAllowance allowance = findAllowanceOrThrow(employeeId);
+            allowance.restore(leave.getDurationInDays());
+            leaveAllowanceRepository.save(allowance);
+        }
         return leaveMapper.toDto(leaveRepository.save(leave));
     }
 
     private Leave findLeaveOrThrow(Long id) {
         return leaveRepository.findById(id)
                 .orElseThrow(() -> new LeaveRequestNotFoundException(id));
+    }
+
+    private LeaveAllowance findAllowanceOrThrow(Long employeeId) {
+        int year = LocalDate.now().getYear();
+        return leaveAllowanceRepository.findByEmployeeIdAndYear(employeeId, year)
+                .orElseThrow(() -> new LeaveAllowanceNotFoundException(employeeId, year));
     }
 }

@@ -2,6 +2,7 @@ package com.example.leave.interfaces.rest;
 
 import com.example.leave.application.dto.CreateLeaveCommand;
 import com.example.leave.application.dto.EmployeeDto;
+import com.example.leave.application.dto.LeaveAllowanceDto;
 import com.example.leave.application.dto.LeaveDto;
 import com.example.leave.application.facade.LeaveContextFacade;
 import jakarta.validation.Valid;
@@ -56,6 +57,12 @@ public class LeaveController {
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<LeaveDto> rejectLeave(@PathVariable Long id) {
         return ResponseEntity.ok(facade.rejectLeave(id));
+    }
+
+    @GetMapping("/allowance")
+    public ResponseEntity<LeaveAllowanceDto> getMyAllowance(Authentication auth) {
+        EmployeeDto employee = facade.getEmployeeByEmail(auth.getName());
+        return ResponseEntity.ok(facade.getAllowance(employee.getId()));
     }
 
     @PutMapping("/{id}/cancel")

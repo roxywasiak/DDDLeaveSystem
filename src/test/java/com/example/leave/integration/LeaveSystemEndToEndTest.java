@@ -2,9 +2,11 @@ package com.example.leave.integration;
 
 import com.example.leave.application.dto.CreateLeaveCommand;
 import com.example.leave.domain.model.Employee;
+import com.example.leave.domain.model.LeaveAllowance;
 import com.example.leave.domain.model.LeaveType;
 import com.example.leave.domain.model.Role;
 import com.example.leave.domain.repository.EmployeeRepository;
+import com.example.leave.domain.repository.LeaveAllowanceRepository;
 import com.example.leave.domain.repository.LeaveRepository;
 import com.example.leave.infrastructure.security.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +33,7 @@ class LeaveSystemEndToEndTest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private EmployeeRepository employeeRepository;
     @Autowired private LeaveRepository leaveRepository;
+    @Autowired private LeaveAllowanceRepository leaveAllowanceRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JwtService jwtService;
 
@@ -40,7 +43,10 @@ class LeaveSystemEndToEndTest {
     @BeforeEach
     void setUp() {
         leaveRepository.deleteAll();
+        leaveAllowanceRepository.deleteAll();
         employeeRepository.deleteAll();
+
+        int year = java.time.LocalDate.now().getYear();
 
         Employee employee = new Employee("employee@test.com",
                 passwordEncoder.encode("password123"), "John Doe", Role.EMPLOYEE);
@@ -48,6 +54,9 @@ class LeaveSystemEndToEndTest {
                 passwordEncoder.encode("password123"), "Jane Manager", Role.MANAGER);
         employeeRepository.save(employee);
         employeeRepository.save(manager);
+
+        leaveAllowanceRepository.save(new LeaveAllowance(employee.getId(), year, 25));
+        leaveAllowanceRepository.save(new LeaveAllowance(manager.getId(), year, 25));
 
         employeeToken = jwtService.generateToken("employee@test.com");
         managerToken = jwtService.generateToken("manager@test.com");

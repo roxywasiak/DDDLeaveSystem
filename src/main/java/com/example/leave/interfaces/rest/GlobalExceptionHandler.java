@@ -2,6 +2,7 @@ package com.example.leave.interfaces.rest;
 
 import com.example.leave.application.exception.DuplicateEmailException;
 import com.example.leave.application.exception.EmployeeNotFoundException;
+import com.example.leave.application.exception.LeaveAllowanceNotFoundException;
 import com.example.leave.application.exception.LeaveRequestNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmployeeNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleEmployeeNotFound(EmployeeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(LeaveAllowanceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleAllowanceNotFound(LeaveAllowanceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
     }
 

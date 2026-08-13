@@ -80,4 +80,8 @@ public class Leave {
         }
         this.status = LeaveStatus.CANCELLED;
     }
+
+    public int getDurationInDays() {
+        return (int) (endDate.toEpochDay() - startDate.toEpochDay()) + 1;
+    }
 }

@@ -58,6 +58,10 @@ public class LeaveContextFacade {
         return leaveQueryHandler.getPendingLeaves();
     }
 
+    public LeaveAllowanceDto getAllowance(Long employeeId) {
+        return leaveQueryHandler.getAllowance(employeeId);
+    }
+
     // Employee queries
     public List<EmployeeDto> getAllEmployees() {
         return employeeQueryHandler.getAllEmployees();
