@@ -18,7 +18,7 @@ public class LeaveAllowance {
     @Column(nullable = false)
     private Long employeeId;
 
-    @Column(nullable = false)
+    @Column(name = "allowance_year", nullable = false)
     private int year;
 
     @Column(nullable = false)

@@ -5,11 +5,14 @@ import com.example.leave.application.dto.LeaveDto;
 import com.example.leave.application.exception.LeaveAllowanceNotFoundException;
 import com.example.leave.application.exception.LeaveRequestNotFoundException;
 import com.example.leave.application.mapper.LeaveMapper;
+import com.example.leave.domain.event.LeaveApprovedEvent;
+import com.example.leave.domain.event.LeaveRejectedEvent;
 import com.example.leave.domain.model.Leave;
 import com.example.leave.domain.model.LeaveAllowance;
 import com.example.leave.domain.repository.LeaveAllowanceRepository;
 import com.example.leave.domain.repository.LeaveRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +26,7 @@ public class LeaveCommandHandler {
     private final LeaveRepository leaveRepository;
     private final LeaveAllowanceRepository leaveAllowanceRepository;
     private final LeaveMapper leaveMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public LeaveDto createLeave(Long employeeId, CreateLeaveCommand command) {
         Leave leave = new Leave(
@@ -41,13 +45,17 @@ public class LeaveCommandHandler {
         LeaveAllowance allowance = findAllowanceOrThrow(leave.getEmployeeId());
         allowance.deduct(leave.getDurationInDays());
         leaveAllowanceRepository.save(allowance);
-        return leaveMapper.toDto(leaveRepository.save(leave));
+        LeaveDto dto = leaveMapper.toDto(leaveRepository.save(leave));
+        eventPublisher.publishEvent(new LeaveApprovedEvent(leave.getId(), leave.getEmployeeId(), leave.getDurationInDays()));
+        return dto;
     }
 
     public LeaveDto rejectLeave(Long leaveId) {
         Leave leave = findLeaveOrThrow(leaveId);
         leave.reject();
-        return leaveMapper.toDto(leaveRepository.save(leave));
+        LeaveDto dto = leaveMapper.toDto(leaveRepository.save(leave));
+        eventPublisher.publishEvent(new LeaveRejectedEvent(leave.getId(), leave.getEmployeeId()));
+        return dto;
     }
 
     public LeaveDto cancelLeave(Long leaveId, Long employeeId) {

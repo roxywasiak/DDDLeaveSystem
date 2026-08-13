@@ -1,6 +1,7 @@
 package com.example.leave.infrastructure.security;
 
 import com.example.leave.domain.repository.EmployeeRepository;
+import com.example.leave.infrastructure.ratelimit.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +36,9 @@ public class SecurityConfig {
     @Lazy
     private JwtAuthFilter jwtAuthFilter;
 
+    @Autowired
+    private RateLimitFilter rateLimitFilter;
+
     @Bean
     public UserDetailsService userDetailsService(EmployeeRepository employeeRepository) {
         return email -> {
@@ -61,6 +65,7 @@ public class SecurityConfig {
             )
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .authenticationProvider(authenticationProvider)
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

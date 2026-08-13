@@ -6,22 +6,25 @@ import com.example.leave.domain.model.Role;
 import com.example.leave.domain.repository.EmployeeRepository;
 import com.example.leave.domain.repository.LeaveAllowanceRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor
-public class DataSeeder implements CommandLineRunner {
+public class DataSeeder {
 
     private final EmployeeRepository employeeRepository;
     private final LeaveAllowanceRepository leaveAllowanceRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public void run(String... args) {
+    @EventListener(ApplicationReadyEvent.class)
+    @Transactional
+    public void seed() {
         if (employeeRepository.count() == 0) {
             int year = LocalDate.now().getYear();
 
