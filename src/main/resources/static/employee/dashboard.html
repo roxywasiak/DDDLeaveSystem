@@ -88,6 +88,7 @@
                     <th scope="col">Days</th>
                     <th scope="col">Status</th>
                     <th scope="col">Reason</th>
+                    <th scope="col">Rejection Reason</th>
                     <th scope="col">Action</th>
                 </tr>
             </thead>
@@ -179,6 +180,7 @@
                     <td>${days}</td>
                     <td><span class="badge badge-${status}">${l.status}</span></td>
                     <td>${l.reason ? escHtml(l.reason) : ''}</td>
+                    <td>${l.rejectionReason ? `<span style="color:#c0392b">${escHtml(l.rejectionReason)}</span>` : ''}</td>
                     <td>${canCancel
                         ? `<button class="btn btn-secondary btn-sm" onclick="cancelLeave(${l.id})">Cancel</button>`
                         : ''}</td>`;

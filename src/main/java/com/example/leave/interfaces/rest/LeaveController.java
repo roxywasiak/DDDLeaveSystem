@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/leaves")
@@ -55,8 +56,10 @@ public class LeaveController {
 
     @PutMapping("/{id}/reject")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<LeaveDto> rejectLeave(@PathVariable Long id) {
-        return ResponseEntity.ok(facade.rejectLeave(id));
+    public ResponseEntity<LeaveDto> rejectLeave(@PathVariable Long id,
+                                                 @RequestBody Map<String, String> body) {
+        String reason = body != null ? body.get("reason") : null;
+        return ResponseEntity.ok(facade.rejectLeave(id, reason));
     }
 
     @GetMapping("/allowance")

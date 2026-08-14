@@ -75,7 +75,7 @@
             const a = await api(`/api/admin/allowances/${employeeId}`);
             return `${a.remainingDays} / ${a.totalDays} days remaining`;
         } catch (_) {
-            return '<span style="color:#595959">No allowance set</span>';
+            return '<span style="color:#595959">Not set</span>';
         }
     }
 

@@ -37,7 +37,7 @@ class LeaveQueryHandlerTest {
         Leave leave = new Leave(1L, LeaveType.ANNUAL,
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(5), "Holiday");
         LeaveDto dto = new LeaveDto(1L, 1L, LeaveType.ANNUAL,
-                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.PENDING);
+                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.PENDING, null);
 
         when(leaveRepository.findById(1L)).thenReturn(Optional.of(leave));
         when(leaveMapper.toDto(leave)).thenReturn(dto);
@@ -59,7 +59,7 @@ class LeaveQueryHandlerTest {
         Leave leave = new Leave(1L, LeaveType.SICK,
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(3), "Flu");
         LeaveDto dto = new LeaveDto(1L, 1L, LeaveType.SICK,
-                leave.getStartDate(), leave.getEndDate(), "Flu", LeaveStatus.PENDING);
+                leave.getStartDate(), leave.getEndDate(), "Flu", LeaveStatus.PENDING, null);
 
         when(leaveRepository.findByEmployeeId(1L)).thenReturn(List.of(leave));
         when(leaveMapper.toDtoList(List.of(leave))).thenReturn(List.of(dto));
@@ -75,7 +75,7 @@ class LeaveQueryHandlerTest {
         Leave leave = new Leave(1L, LeaveType.ANNUAL,
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(5), "Holiday");
         LeaveDto dto = new LeaveDto(1L, 1L, LeaveType.ANNUAL,
-                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.PENDING);
+                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.PENDING, null);
 
         when(leaveRepository.findByStatus(LeaveStatus.PENDING)).thenReturn(List.of(leave));
         when(leaveMapper.toDtoList(List.of(leave))).thenReturn(List.of(dto));

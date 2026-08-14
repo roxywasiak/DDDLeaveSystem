@@ -111,23 +111,23 @@
 
             leaves.forEach(l => {
                 const days = daysBetween(l.startDate, l.endDate);
+                const empName = employeeCache[l.employeeId] || 'Employee #' + l.employeeId;
                 const tr = document.createElement('tr');
                 tr.id = `row-${l.id}`;
                 tr.innerHTML = `
-                    <td>${employeeCache[l.employeeId] || 'Employee #' + l.employeeId}</td>
+                    <td>${empName}</td>
                     <td>${l.type}</td>
                     <td>${l.startDate}</td>
                     <td>${l.endDate}</td>
                     <td>${days}</td>
                     <td>${l.reason ? escHtml(l.reason) : ''}</td>
                     <td class="action-cell">
-                        <button class="btn btn-success btn-sm" onclick="action(${l.id},'approve')"
-                                aria-label="Approve leave for ${employeeCache[l.employeeId] || 'employee'}">
+                        <button class="btn btn-success btn-sm"
+                                onclick="action(${l.id},'approve','${empName.replace(/'/g, "\'")}')">
                             Approve
                         </button>
-                        <button class="btn btn-danger btn-sm" onclick="action(${l.id},'reject')"
-                                aria-label="Reject leave for ${employeeCache[l.employeeId] || 'employee'}"
-                                style="margin-left:0.4rem">
+                        <button class="btn btn-danger btn-sm"
+                                onclick="action(${l.id},'reject','${empName.replace(/'/g, "\'")}')">
                             Reject
                         </button>
                     </td>`;
@@ -139,15 +139,26 @@
         }
     }
 
-    async function action(id, type) {
-        const label = type === 'approve' ? 'Approve' : 'Reject';
-        if (!confirm(`${label} this leave request?`)) return;
+    async function action(id, type, employeeName) {
+        let reason = null;
+        if (type === 'reject') {
+            reason = prompt(`Rejection reason for ${employeeName}:`);
+            if (reason === null) return; // cancelled
+            if (!reason.trim()) {
+                showError('A rejection reason is required.');
+                return;
+            }
+        } else {
+            if (!confirm(`Approve this leave request?`)) return;
+        }
         try {
-            await api(`/api/leaves/${id}/${type}`, { method: 'PUT' });
-            // Remove row immediately for instant feedback
+            await api(`/api/leaves/${id}/${type}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reason ? { reason } : {})
+            });
             const row = document.getElementById(`row-${id}`);
             if (row) row.remove();
-            // Show empty state if no rows left
             if (document.getElementById('pending-body').children.length === 0) {
                 document.getElementById('pending-table').style.display = 'none';
                 document.getElementById('empty-msg').style.display = 'block';

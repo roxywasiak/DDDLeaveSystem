@@ -43,7 +43,7 @@ class LeaveCommandHandlerTest {
         CreateLeaveCommand command = new CreateLeaveCommand(LeaveType.ANNUAL,
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(5), "Holiday");
         LeaveDto expectedDto = new LeaveDto(1L, 1L, LeaveType.ANNUAL,
-                command.getStartDate(), command.getEndDate(), "Holiday", LeaveStatus.PENDING);
+                command.getStartDate(), command.getEndDate(), "Holiday", LeaveStatus.PENDING, null);
 
         when(leaveRepository.save(any(Leave.class))).thenAnswer(i -> i.getArgument(0));
         when(leaveMapper.toDto(any(Leave.class))).thenReturn(expectedDto);
@@ -60,7 +60,7 @@ class LeaveCommandHandlerTest {
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(5), "Holiday");
         LeaveAllowance allowance = new LeaveAllowance(1L, LocalDate.now().getYear(), 25);
         LeaveDto expectedDto = new LeaveDto(1L, 1L, LeaveType.ANNUAL,
-                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.APPROVED);
+                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.APPROVED, null);
 
         when(leaveRepository.findById(1L)).thenReturn(Optional.of(leave));
         when(leaveAllowanceRepository.findByEmployeeIdAndYear(eq(1L), anyInt())).thenReturn(Optional.of(allowance));
@@ -84,13 +84,13 @@ class LeaveCommandHandlerTest {
         Leave leave = new Leave(1L, LeaveType.ANNUAL,
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(5), "Holiday");
         LeaveDto expectedDto = new LeaveDto(1L, 1L, LeaveType.ANNUAL,
-                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.REJECTED);
+                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.REJECTED, "Not enough cover");
 
         when(leaveRepository.findById(1L)).thenReturn(Optional.of(leave));
         when(leaveRepository.save(any(Leave.class))).thenAnswer(i -> i.getArgument(0));
         when(leaveMapper.toDto(any(Leave.class))).thenReturn(expectedDto);
 
-        LeaveDto result = handler.rejectLeave(1L);
+        LeaveDto result = handler.rejectLeave(1L, "Not enough cover");
 
         assertEquals(LeaveStatus.REJECTED, result.getStatus());
     }
@@ -100,7 +100,7 @@ class LeaveCommandHandlerTest {
         Leave leave = new Leave(1L, LeaveType.ANNUAL,
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(5), "Holiday");
         LeaveDto expectedDto = new LeaveDto(1L, 1L, LeaveType.ANNUAL,
-                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.CANCELLED);
+                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.CANCELLED, null);
 
         when(leaveRepository.findById(1L)).thenReturn(Optional.of(leave));
         when(leaveRepository.save(any(Leave.class))).thenAnswer(i -> i.getArgument(0));

@@ -11,6 +11,7 @@ import com.example.leave.application.mapper.LeaveMapper;
 import com.example.leave.domain.event.LeaveApprovedEvent;
 import com.example.leave.domain.event.LeaveRejectedEvent;
 import com.example.leave.domain.model.Leave;
+import com.example.leave.domain.model.RejectionReason;
 import com.example.leave.domain.model.LeaveAllowance;
 import com.example.leave.domain.repository.LeaveAllowanceRepository;
 import com.example.leave.domain.repository.LeaveRepository;
@@ -54,9 +55,9 @@ public class LeaveCommandHandler {
         return dto;
     }
 
-    public LeaveDto rejectLeave(Long leaveId) {
+    public LeaveDto rejectLeave(Long leaveId, String reason) {
         Leave leave = findLeaveOrThrow(leaveId);
-        leave.reject();
+        leave.reject(new RejectionReason(reason));
         LeaveDto dto = leaveMapper.toDto(leaveRepository.save(leave));
         eventPublisher.publishEvent(new LeaveRejectedEvent(leave.getId(), leave.getEmployeeId()));
         return dto;
@@ -86,7 +87,10 @@ public class LeaveCommandHandler {
     }
 
     public LeaveAllowanceDto amendAllowance(Long employeeId, AmendAllowanceCommand command) {
-        LeaveAllowance allowance = findAllowanceOrThrow(employeeId);
+        int year = LocalDate.now().getYear();
+        LeaveAllowance allowance = leaveAllowanceRepository
+                .findByEmployeeIdAndYear(employeeId, year)
+                .orElse(new LeaveAllowance(employeeId, year, command.getTotalDays()));
         allowance.amendTotalDays(command.getTotalDays());
         return leaveAllowanceMapper.toDto(leaveAllowanceRepository.save(allowance));
     }

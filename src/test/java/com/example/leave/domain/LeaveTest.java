@@ -3,6 +3,7 @@ package com.example.leave.domain;
 import com.example.leave.domain.model.Leave;
 import com.example.leave.domain.model.LeaveStatus;
 import com.example.leave.domain.model.LeaveType;
+import com.example.leave.domain.model.RejectionReason;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -52,8 +53,9 @@ class LeaveTest {
     @Test
     void shouldRejectLeave() {
         Leave leave = createPendingLeave();
-        leave.reject();
+        leave.reject(new RejectionReason("Not enough cover"));
         assertEquals(LeaveStatus.REJECTED, leave.getStatus());
+        assertEquals("Not enough cover", leave.getRejectionReason().getValue());
     }
 
     @Test
@@ -66,8 +68,8 @@ class LeaveTest {
     @Test
     void shouldNotRejectNonPendingLeave() {
         Leave leave = createPendingLeave();
-        leave.reject();
-        assertThrows(IllegalStateException.class, leave::reject);
+        leave.reject(new RejectionReason("Not enough cover"));
+        assertThrows(IllegalStateException.class, () -> leave.reject(new RejectionReason("Again")));
     }
 
     @Test

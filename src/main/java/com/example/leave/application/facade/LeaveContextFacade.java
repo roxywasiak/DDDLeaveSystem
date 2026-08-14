@@ -37,8 +37,8 @@ public class LeaveContextFacade {
         return leaveCommandHandler.approveLeave(leaveId);
     }
 
-    public LeaveDto rejectLeave(Long leaveId) {
-        return leaveCommandHandler.rejectLeave(leaveId);
+    public LeaveDto rejectLeave(Long leaveId, String reason) {
+        return leaveCommandHandler.rejectLeave(leaveId, reason);
     }
 
     public LeaveDto cancelLeave(Long leaveId, Long employeeId) {

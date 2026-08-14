@@ -32,6 +32,9 @@ public class Leave {
 
     private String reason;
 
+    @Embedded
+    private RejectionReason rejectionReason;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LeaveStatus status;
@@ -67,10 +70,14 @@ public class Leave {
         this.status = LeaveStatus.APPROVED;
     }
 
-    public void reject() {
+    public void reject(RejectionReason rejectionReason) {
         if (this.status != LeaveStatus.PENDING) {
             throw new IllegalStateException("Only pending leave can be rejected");
         }
+        if (rejectionReason == null) {
+            throw new IllegalArgumentException("Rejection reason is required");
+        }
+        this.rejectionReason = rejectionReason;
         this.status = LeaveStatus.REJECTED;
     }
 

@@ -7,7 +7,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Arrays;
 
@@ -27,28 +28,6 @@ public class ManagerDashboardController {
         return "forward:/manager/dashboard.html";
     }
 
-    @PostMapping("/leave/{id}/approve")
-    public String approve(@PathVariable Long id, HttpServletRequest request) {
-        if (currentEmployee(request) == null) return "redirect:/login";
-        try {
-            facade.approveLeave(id);
-            return "redirect:/manager/dashboard?message=Leave+approved.";
-        } catch (Exception e) {
-            return "redirect:/manager/dashboard?error=" + encode(e.getMessage());
-        }
-    }
-
-    @PostMapping("/leave/{id}/reject")
-    public String reject(@PathVariable Long id, HttpServletRequest request) {
-        if (currentEmployee(request) == null) return "redirect:/login";
-        try {
-            facade.rejectLeave(id);
-            return "redirect:/manager/dashboard?message=Leave+rejected.";
-        } catch (Exception e) {
-            return "redirect:/manager/dashboard?error=" + encode(e.getMessage());
-        }
-    }
-
     private EmployeeDto currentEmployee(HttpServletRequest request) {
         try {
             if (request.getCookies() == null) return null;
@@ -61,10 +40,5 @@ public class ManagerDashboardController {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    private String encode(String s) {
-        if (s == null) return "";
-        return s.replaceAll("[^a-zA-Z0-9 .,]", "").replace(" ", "+");
     }
 }
