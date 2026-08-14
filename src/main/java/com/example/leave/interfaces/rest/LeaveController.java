@@ -1,5 +1,6 @@
 package com.example.leave.interfaces.rest;
 
+import com.example.leave.application.dto.AmendLeaveCommand;
 import com.example.leave.application.dto.CreateLeaveCommand;
 import com.example.leave.application.dto.EmployeeDto;
 import com.example.leave.application.dto.LeaveAllowanceDto;
@@ -50,16 +51,25 @@ public class LeaveController {
 
     @PutMapping("/{id}/approve")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<LeaveDto> approveLeave(@PathVariable Long id) {
-        return ResponseEntity.ok(facade.approveLeave(id));
+    public ResponseEntity<LeaveDto> approveLeave(@PathVariable Long id, Authentication auth) {
+        return ResponseEntity.ok(facade.approveLeave(id, auth.getName()));
     }
 
     @PutMapping("/{id}/reject")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<LeaveDto> rejectLeave(@PathVariable Long id,
-                                                 @RequestBody Map<String, String> body) {
+                                                 @RequestBody Map<String, String> body,
+                                                 Authentication auth) {
         String reason = body != null ? body.get("reason") : null;
-        return ResponseEntity.ok(facade.rejectLeave(id, reason));
+        return ResponseEntity.ok(facade.rejectLeave(id, reason, auth.getName()));
+    }
+
+    @PutMapping("/{id}/amend")
+    public ResponseEntity<LeaveDto> amendLeave(@PathVariable Long id,
+                                                @Valid @RequestBody AmendLeaveCommand command,
+                                                Authentication auth) {
+        EmployeeDto employee = facade.getEmployeeByEmail(auth.getName());
+        return ResponseEntity.ok(facade.amendLeave(id, employee.getId(), command));
     }
 
     @GetMapping("/allowance")

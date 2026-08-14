@@ -23,24 +23,26 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class LeaveQueryHandlerTest {
 
-    @Mock
-    private LeaveRepository leaveRepository;
-
-    @Mock
-    private LeaveMapper leaveMapper;
+    @Mock private LeaveRepository leaveRepository;
+    @Mock private LeaveMapper leaveMapper;
 
     @InjectMocks
     private LeaveQueryHandler handler;
+
+    private LeaveDto dto(LeaveType type, LeaveStatus status, String reason) {
+        return new LeaveDto(1L, 1L, type,
+                LocalDate.now().plusDays(1), LocalDate.now().plusDays(5),
+                reason, status, null, null, null, null);
+    }
 
     @Test
     void shouldGetLeaveById() {
         Leave leave = new Leave(1L, LeaveType.ANNUAL,
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(5), "Holiday");
-        LeaveDto dto = new LeaveDto(1L, 1L, LeaveType.ANNUAL,
-                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.PENDING, null);
+        LeaveDto expected = dto(LeaveType.ANNUAL, LeaveStatus.PENDING, "Holiday");
 
         when(leaveRepository.findById(1L)).thenReturn(Optional.of(leave));
-        when(leaveMapper.toDto(leave)).thenReturn(dto);
+        when(leaveMapper.toDto(leave)).thenReturn(expected);
 
         LeaveDto result = handler.getLeaveById(1L);
 
@@ -58,11 +60,10 @@ class LeaveQueryHandlerTest {
     void shouldGetLeavesByEmployee() {
         Leave leave = new Leave(1L, LeaveType.SICK,
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(3), "Flu");
-        LeaveDto dto = new LeaveDto(1L, 1L, LeaveType.SICK,
-                leave.getStartDate(), leave.getEndDate(), "Flu", LeaveStatus.PENDING, null);
+        LeaveDto expected = dto(LeaveType.SICK, LeaveStatus.PENDING, "Flu");
 
         when(leaveRepository.findByEmployeeId(1L)).thenReturn(List.of(leave));
-        when(leaveMapper.toDtoList(List.of(leave))).thenReturn(List.of(dto));
+        when(leaveMapper.toDtoList(List.of(leave))).thenReturn(List.of(expected));
 
         List<LeaveDto> result = handler.getLeavesByEmployee(1L);
 
@@ -74,11 +75,10 @@ class LeaveQueryHandlerTest {
     void shouldGetPendingLeaves() {
         Leave leave = new Leave(1L, LeaveType.ANNUAL,
                 LocalDate.now().plusDays(1), LocalDate.now().plusDays(5), "Holiday");
-        LeaveDto dto = new LeaveDto(1L, 1L, LeaveType.ANNUAL,
-                leave.getStartDate(), leave.getEndDate(), "Holiday", LeaveStatus.PENDING, null);
+        LeaveDto expected = dto(LeaveType.ANNUAL, LeaveStatus.PENDING, "Holiday");
 
         when(leaveRepository.findByStatus(LeaveStatus.PENDING)).thenReturn(List.of(leave));
-        when(leaveMapper.toDtoList(List.of(leave))).thenReturn(List.of(dto));
+        when(leaveMapper.toDtoList(List.of(leave))).thenReturn(List.of(expected));
 
         List<LeaveDto> result = handler.getPendingLeaves();
 

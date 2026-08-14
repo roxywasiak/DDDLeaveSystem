@@ -46,30 +46,52 @@ class LeaveTest {
     @Test
     void shouldApproveLeave() {
         Leave leave = createPendingLeave();
-        leave.approve();
+        leave.approve("manager@example.com");
         assertEquals(LeaveStatus.APPROVED, leave.getStatus());
+        assertNotNull(leave.getDecidedAt());
+        assertEquals("manager@example.com", leave.getDecidedBy());
     }
 
     @Test
     void shouldRejectLeave() {
         Leave leave = createPendingLeave();
-        leave.reject(new RejectionReason("Not enough cover"));
+        leave.reject(new RejectionReason("Not enough cover"), "manager@example.com");
         assertEquals(LeaveStatus.REJECTED, leave.getStatus());
         assertEquals("Not enough cover", leave.getRejectionReason().getValue());
+        assertNotNull(leave.getDecidedAt());
     }
 
     @Test
     void shouldNotApproveNonPendingLeave() {
         Leave leave = createPendingLeave();
-        leave.approve();
-        assertThrows(IllegalStateException.class, leave::approve);
+        leave.approve("manager@example.com");
+        assertThrows(IllegalStateException.class, () -> leave.approve("manager@example.com"));
     }
 
     @Test
     void shouldNotRejectNonPendingLeave() {
         Leave leave = createPendingLeave();
-        leave.reject(new RejectionReason("Not enough cover"));
-        assertThrows(IllegalStateException.class, () -> leave.reject(new RejectionReason("Again")));
+        leave.reject(new RejectionReason("Not enough cover"), "manager@example.com");
+        assertThrows(IllegalStateException.class, () -> leave.reject(new RejectionReason("Again"), "manager@example.com"));
+    }
+
+    @Test
+    void shouldAmendPendingLeave() {
+        Leave leave = createPendingLeave();
+        LocalDate newStart = LocalDate.now().plusDays(10);
+        LocalDate newEnd = LocalDate.now().plusDays(15);
+        leave.amend(LeaveType.SICK, newStart, newEnd, "Changed");
+        assertEquals(LeaveType.SICK, leave.getType());
+        assertEquals(newStart, leave.getStartDate());
+        assertEquals(newEnd, leave.getEndDate());
+    }
+
+    @Test
+    void shouldNotAmendNonPendingLeave() {
+        Leave leave = createPendingLeave();
+        leave.approve("manager@example.com");
+        assertThrows(IllegalStateException.class, () ->
+                leave.amend(LeaveType.SICK, LocalDate.now().plusDays(1), LocalDate.now().plusDays(3), null));
     }
 
     @Test

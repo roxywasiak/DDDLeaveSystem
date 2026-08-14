@@ -33,12 +33,16 @@ public class LeaveContextFacade {
         return leaveCommandHandler.createLeave(employeeId, command);
     }
 
-    public LeaveDto approveLeave(Long leaveId) {
-        return leaveCommandHandler.approveLeave(leaveId);
+    public LeaveDto approveLeave(Long leaveId, String decidedBy) {
+        return leaveCommandHandler.approveLeave(leaveId, decidedBy);
     }
 
-    public LeaveDto rejectLeave(Long leaveId, String reason) {
-        return leaveCommandHandler.rejectLeave(leaveId, reason);
+    public LeaveDto rejectLeave(Long leaveId, String reason, String decidedBy) {
+        return leaveCommandHandler.rejectLeave(leaveId, reason, decidedBy);
+    }
+
+    public LeaveDto amendLeave(Long leaveId, Long employeeId, AmendLeaveCommand command) {
+        return leaveCommandHandler.amendLeave(leaveId, employeeId, command);
     }
 
     public LeaveDto cancelLeave(Long leaveId, Long employeeId) {

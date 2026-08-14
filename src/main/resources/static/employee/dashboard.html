@@ -89,12 +89,53 @@
                     <th scope="col">Status</th>
                     <th scope="col">Reason</th>
                     <th scope="col">Rejection Reason</th>
-                    <th scope="col">Action</th>
+                    <th scope="col">Decided By</th>
+                    <th scope="col">Decided At</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
             <tbody id="history-body"></tbody>
         </table>
         <p id="history-empty" style="display:none;color:#595959">No leave requests yet.</p>
+    </div>
+
+    <!-- Amend modal -->
+    <div id="amend-modal" role="dialog" aria-modal="true" aria-labelledby="amend-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:none;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:8px;padding:2rem;width:100%;max-width:480px;margin:1rem">
+            <h2 id="amend-title" style="margin-bottom:1.5rem;font-size:1.2rem;color:#1a1a2e">Edit Leave Request</h2>
+            <form id="amend-form" novalidate>
+                <input type="hidden" id="amend-id">
+                <div class="form-group">
+                    <label for="amend-type">Leave Type</label>
+                    <select id="amend-type" required>
+                        <option value="ANNUAL">Annual</option>
+                        <option value="SICK">Sick</option>
+                        <option value="UNPAID">Unpaid</option>
+                    </select>
+                    <span class="field-error" id="amend-type-error" role="alert"></span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amend-start">Start Date</label>
+                        <input type="date" id="amend-start" required>
+                        <span class="field-error" id="amend-start-error" role="alert"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="amend-end">End Date</label>
+                        <input type="date" id="amend-end" required>
+                        <span class="field-error" id="amend-end-error" role="alert"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="amend-reason">Reason <span style="font-weight:400;color:#595959">(optional)</span></label>
+                    <input type="text" id="amend-reason" maxlength="500">
+                </div>
+                <div style="display:flex;gap:0.75rem;margin-top:1rem">
+                    <button type="submit" class="btn btn-primary" style="width:auto">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" style="width:auto" onclick="closeAmend()">Cancel</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 </main>
@@ -103,6 +144,8 @@
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('startDate').min = today;
     document.getElementById('endDate').min = today;
+    document.getElementById('amend-start').min = today;
+    document.getElementById('amend-end').min = today;
 
     async function api(path, options = {}) {
         const res = await fetch(path, { credentials: 'include', ...options });
@@ -130,8 +173,16 @@
     }
 
     function daysBetween(start, end) {
-        const ms = new Date(end) - new Date(start);
-        return Math.floor(ms / 86400000) + 1;
+        return Math.floor((new Date(end) - new Date(start)) / 86400000) + 1;
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function formatDateTime(dt) {
+        if (!dt) return '';
+        return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' });
     }
 
     async function loadAllowance() {
@@ -171,7 +222,8 @@
             leaves.forEach(l => {
                 const days = daysBetween(l.startDate, l.endDate);
                 const status = l.status.toLowerCase();
-                const canCancel = l.status === 'PENDING' || l.status === 'APPROVED';
+                const isPending = l.status === 'PENDING';
+                const canCancel = isPending || l.status === 'APPROVED';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${l.type}</td>
@@ -181,9 +233,12 @@
                     <td><span class="badge badge-${status}">${l.status}</span></td>
                     <td>${l.reason ? escHtml(l.reason) : ''}</td>
                     <td>${l.rejectionReason ? `<span style="color:#c0392b">${escHtml(l.rejectionReason)}</span>` : ''}</td>
-                    <td>${canCancel
-                        ? `<button class="btn btn-secondary btn-sm" onclick="cancelLeave(${l.id})">Cancel</button>`
-                        : ''}</td>`;
+                    <td>${l.decidedBy ? escHtml(l.decidedBy) : ''}</td>
+                    <td>${formatDateTime(l.decidedAt)}</td>
+                    <td class="action-cell">
+                        ${isPending ? `<button class="btn btn-primary btn-sm" onclick="openAmend(${l.id},'${l.type}','${l.startDate}','${l.endDate}','${l.reason ? escHtml(l.reason) : ''}')">Edit</button> ` : ''}
+                        ${canCancel ? `<button class="btn btn-secondary btn-sm" onclick="cancelLeave(${l.id})">Cancel</button>` : ''}
+                    </td>`;
                 tbody.appendChild(tr);
             });
             table.style.display = 'table';
@@ -204,9 +259,65 @@
         }
     }
 
-    function escHtml(s) {
-        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    function openAmend(id, type, startDate, endDate, reason) {
+        document.getElementById('amend-id').value = id;
+        document.getElementById('amend-type').value = type;
+        document.getElementById('amend-start').value = startDate;
+        document.getElementById('amend-end').value = endDate;
+        document.getElementById('amend-reason').value = reason;
+        ['amend-type-error','amend-start-error','amend-end-error'].forEach(id => {
+            document.getElementById(id).textContent = '';
+        });
+        const modal = document.getElementById('amend-modal');
+        modal.style.display = 'flex';
+        document.getElementById('amend-type').focus();
     }
+
+    function closeAmend() {
+        document.getElementById('amend-modal').style.display = 'none';
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('amend-modal').addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeAmend();
+    });
+
+    document.getElementById('amend-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = document.getElementById('amend-id').value;
+        const type = document.getElementById('amend-type').value;
+        const startDate = document.getElementById('amend-start').value;
+        const endDate = document.getElementById('amend-end').value;
+        const reason = document.getElementById('amend-reason').value;
+
+        let valid = true;
+        if (!startDate) {
+            document.getElementById('amend-start-error').textContent = 'Start date is required.';
+            valid = false;
+        }
+        if (!endDate) {
+            document.getElementById('amend-end-error').textContent = 'End date is required.';
+            valid = false;
+        } else if (endDate < startDate) {
+            document.getElementById('amend-end-error').textContent = 'End date cannot be before start date.';
+            valid = false;
+        }
+        if (!valid) return;
+
+        try {
+            await api(`/api/leaves/${id}/amend`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, startDate, endDate, reason: reason || null })
+            });
+            closeAmend();
+            showSuccess('Leave request updated.');
+            await loadHistory();
+        } catch (err) {
+            showError(err.message);
+            closeAmend();
+        }
+    });
 
     // Duration preview
     function updatePreview() {
@@ -224,10 +335,9 @@
     document.getElementById('startDate').addEventListener('change', updatePreview);
     document.getElementById('endDate').addEventListener('change', updatePreview);
 
-    // Form submission
+    // Submit new leave
     document.getElementById('leave-form').addEventListener('submit', async e => {
         e.preventDefault();
-        // Clear field errors
         ['type','startDate','endDate'].forEach(f => {
             document.getElementById(f + '-error').textContent = '';
         });
@@ -238,21 +348,10 @@
         const reason = document.getElementById('reason').value;
 
         let valid = true;
-        if (!type) {
-            document.getElementById('type-error').textContent = 'Please select a leave type.';
-            valid = false;
-        }
-        if (!startDate) {
-            document.getElementById('startDate-error').textContent = 'Please select a start date.';
-            valid = false;
-        }
-        if (!endDate) {
-            document.getElementById('endDate-error').textContent = 'Please select an end date.';
-            valid = false;
-        } else if (endDate < startDate) {
-            document.getElementById('endDate-error').textContent = 'End date cannot be before start date.';
-            valid = false;
-        }
+        if (!type) { document.getElementById('type-error').textContent = 'Please select a leave type.'; valid = false; }
+        if (!startDate) { document.getElementById('startDate-error').textContent = 'Please select a start date.'; valid = false; }
+        if (!endDate) { document.getElementById('endDate-error').textContent = 'Please select an end date.'; valid = false; }
+        else if (endDate < startDate) { document.getElementById('endDate-error').textContent = 'End date cannot be before start date.'; valid = false; }
         if (!valid) return;
 
         try {

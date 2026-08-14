@@ -18,7 +18,10 @@ public class LeaveMapper {
                 leave.getEndDate(),
                 leave.getReason(),
                 leave.getStatus(),
-                leave.getRejectionReason() != null ? leave.getRejectionReason().getValue() : null
+                leave.getRejectionReason() != null ? leave.getRejectionReason().getValue() : null,
+                leave.getCreatedAt(),
+                leave.getDecidedAt(),
+                leave.getDecidedBy()
         );
     }
 

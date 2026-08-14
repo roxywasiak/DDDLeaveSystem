@@ -1,6 +1,7 @@
 package com.example.leave.application.command;
 
 import com.example.leave.application.dto.AmendAllowanceCommand;
+import com.example.leave.application.dto.AmendLeaveCommand;
 import com.example.leave.application.dto.CreateLeaveCommand;
 import com.example.leave.application.dto.LeaveAllowanceDto;
 import com.example.leave.application.dto.LeaveDto;
@@ -44,9 +45,9 @@ public class LeaveCommandHandler {
         return leaveMapper.toDto(leaveRepository.save(leave));
     }
 
-    public LeaveDto approveLeave(Long leaveId) {
+    public LeaveDto approveLeave(Long leaveId, String decidedBy) {
         Leave leave = findLeaveOrThrow(leaveId);
-        leave.approve();
+        leave.approve(decidedBy);
         LeaveAllowance allowance = findAllowanceOrThrow(leave.getEmployeeId());
         allowance.deduct(leave.getDurationInDays());
         leaveAllowanceRepository.save(allowance);
@@ -55,12 +56,21 @@ public class LeaveCommandHandler {
         return dto;
     }
 
-    public LeaveDto rejectLeave(Long leaveId, String reason) {
+    public LeaveDto rejectLeave(Long leaveId, String reason, String decidedBy) {
         Leave leave = findLeaveOrThrow(leaveId);
-        leave.reject(new RejectionReason(reason));
+        leave.reject(new RejectionReason(reason), decidedBy);
         LeaveDto dto = leaveMapper.toDto(leaveRepository.save(leave));
         eventPublisher.publishEvent(new LeaveRejectedEvent(leave.getId(), leave.getEmployeeId()));
         return dto;
+    }
+
+    public LeaveDto amendLeave(Long leaveId, Long employeeId, AmendLeaveCommand command) {
+        Leave leave = findLeaveOrThrow(leaveId);
+        if (!leave.getEmployeeId().equals(employeeId)) {
+            throw new IllegalStateException("Only the owner can amend their leave");
+        }
+        leave.amend(command.getType(), command.getStartDate(), command.getEndDate(), command.getReason());
+        return leaveMapper.toDto(leaveRepository.save(leave));
     }
 
     public LeaveDto cancelLeave(Long leaveId, Long employeeId) {
