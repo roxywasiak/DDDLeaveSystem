@@ -17,4 +17,8 @@ public class LeaveDto {
     private LocalDate endDate;
     private String reason;
     private LeaveStatus status;
+
+    public int getDurationInDays() {
+        return (int) (endDate.toEpochDay() - startDate.toEpochDay()) + 1;
+    }
 }

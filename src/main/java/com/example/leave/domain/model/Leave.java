@@ -49,6 +49,9 @@ public class Leave {
         if (endDate.isBefore(startDate)) {
             throw new IllegalArgumentException("End date cannot be before start date");
         }
+        if (reason != null && reason.length() > 500) {
+            throw new IllegalArgumentException("Reason must not exceed 500 characters");
+        }
         this.employeeId = employeeId;
         this.type = type;
         this.startDate = startDate;

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In &mdash; Leave System</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="login-wrapper">
+    <div class="login-card">
+        <h1>Leave System</h1>
+        <p class="subtitle">Sign in to your account</p>
+
+        <div id="alert-error" class="alert alert-danger" role="alert" style="display:none"></div>
+        <div id="alert-message" class="alert alert-success" role="status" style="display:none"></div>
+
+        <form action="/login" method="post">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" autocomplete="email"
+                       placeholder="you@example.com" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign In</button>
+        </form>
+    </div>
+</div>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    const message = params.get('message');
+    if (error) {
+        const el = document.getElementById('alert-error');
+        el.textContent = error;
+        el.style.display = 'block';
+    }
+    if (message) {
+        const el = document.getElementById('alert-message');
+        el.textContent = message;
+        el.style.display = 'block';
+    }
+</script>
+</body>
+</html>

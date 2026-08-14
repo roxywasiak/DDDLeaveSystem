@@ -32,11 +32,16 @@ public class AuthController {
         String ip = request.getRemoteAddr();
         try {
             AuthResponse response = facade.login(command);
-            log.info("AUTH SUCCESS — email={}, ip={}", command.getEmail(), ip);
+            log.info("AUTH SUCCESS — email={}, ip={}", sanitize(command.getEmail()), sanitize(ip));
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException e) {
-            log.warn("AUTH FAILURE — email={}, ip={}", command.getEmail(), ip);
+            log.warn("AUTH FAILURE — email={}, ip={}", sanitize(command.getEmail()), sanitize(ip));
             throw e;
         }
+    }
+
+    private static String sanitize(String input) {
+        if (input == null) return "null";
+        return input.replaceAll("[\r\n\t]", "_");
     }
 }

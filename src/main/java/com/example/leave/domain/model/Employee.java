@@ -38,6 +38,9 @@ public class Employee {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Name is required");
         }
+        if (role == null) {
+            throw new IllegalArgumentException("Role is required");
+        }
         this.email = email;
         this.password = password;
         this.name = name;

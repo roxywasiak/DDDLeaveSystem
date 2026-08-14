@@ -2,7 +2,6 @@ package com.example.leave.infrastructure.security;
 
 import com.example.leave.domain.repository.EmployeeRepository;
 import com.example.leave.infrastructure.ratelimit.RateLimitFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
@@ -54,9 +53,16 @@ public class SecurityConfig {
                                                     AuthenticationProvider authenticationProvider) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .formLogin(form -> form.disable())
+            .logout(logout -> logout.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/login", "/login.html", "/logout").permitAll()
+                .requestMatchers("/css/**").permitAll()
+                .requestMatchers("/employee/**").hasAnyRole("EMPLOYEE", "MANAGER", "ADMIN")
+                .requestMatchers("/manager/**").hasRole("MANAGER")
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN")
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/employees/**").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/leaves/*/approve", "/api/leaves/*/reject")

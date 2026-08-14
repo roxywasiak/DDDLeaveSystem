@@ -6,6 +6,7 @@ import com.example.leave.domain.model.Role;
 import com.example.leave.domain.repository.EmployeeRepository;
 import com.example.leave.domain.repository.LeaveAllowanceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DataSeeder {
 
     private final EmployeeRepository employeeRepository;
@@ -50,10 +52,10 @@ public class DataSeeder {
                     Role.ADMIN
             ));
 
-            System.out.println("=== Seeded default users ===");
-            System.out.println("Manager:  manager@example.com / password123");
-            System.out.println("Employee: employee@example.com / password123");
-            System.out.println("Admin:    admin@example.com / password123");
+            log.info("=== Seeded default users ===");
+            log.info("Manager:  manager@example.com / password123");
+            log.info("Employee: employee@example.com / password123");
+            log.info("Admin:    admin@example.com / password123");
         }
     }
 }
