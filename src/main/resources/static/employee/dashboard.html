@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard &mdash; Leave System</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav>
+    <a class="brand" href="/employee/dashboard" aria-label="Leave System home">Leave System</a>
+    <div class="nav-links">
+        <span id="nav-name" style="color:#ccc;font-size:0.9rem"></span>
+        <a href="/logout">Sign Out</a>
+    </div>
+</nav>
+
+<main class="container" id="main-content">
+
+    <div id="alert-error" class="alert alert-danger" role="alert" style="display:none"></div>
+    <div id="alert-success" class="alert alert-success" role="status" style="display:none"></div>
+
+    <!-- Allowance -->
+    <div class="card">
+        <h2 id="allowance-heading">Leave Allowance</h2>
+        <div class="allowance-stats">
+            <div class="allowance-stat"><span>Total</span><strong id="stat-total">—</strong></div>
+            <div class="allowance-stat"><span>Used</span><strong id="stat-used">—</strong></div>
+            <div class="allowance-stat"><span>Remaining</span><strong id="stat-remaining">—</strong></div>
+        </div>
+        <div class="allowance-bar"
+             role="progressbar"
+             id="allowance-bar"
+             aria-valuemin="0"
+             aria-valuemax="100"
+             aria-valuenow="0"
+             aria-label="Leave days used">
+            <div class="allowance-bar-fill" id="allowance-bar-fill" style="width:0%"></div>
+        </div>
+    </div>
+
+    <!-- Apply for leave -->
+    <div class="card">
+        <h2>Apply for Leave</h2>
+        <form id="leave-form" novalidate>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="type">Leave Type</label>
+                    <select id="type" name="type" required autocomplete="off">
+                        <option value="">Select type</option>
+                        <option value="ANNUAL">Annual</option>
+                        <option value="SICK">Sick</option>
+                        <option value="UNPAID">Unpaid</option>
+                    </select>
+                    <span class="field-error" id="type-error" role="alert"></span>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" name="startDate" required autocomplete="off">
+                    <span class="field-error" id="startDate-error" role="alert"></span>
+                </div>
+                <div class="form-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate" name="endDate" required autocomplete="off">
+                    <span class="field-error" id="endDate-error" role="alert"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="reason">Reason <span style="font-weight:400;color:#595959">(optional)</span></label>
+                <input type="text" id="reason" name="reason" maxlength="500" autocomplete="off">
+            </div>
+            <div id="duration-preview" style="display:none;margin-bottom:1rem;color:#595959;font-size:0.9rem"></div>
+            <button type="submit" class="btn btn-primary" style="width:auto">Submit Request</button>
+        </form>
+    </div>
+
+    <!-- Leave history -->
+    <div class="card">
+        <h2>My Leave History</h2>
+        <div id="history-loading" style="color:#595959">Loading...</div>
+        <table id="history-table" style="display:none">
+            <thead>
+                <tr>
+                    <th scope="col">Type</th>
+                    <th scope="col">Start</th>
+                    <th scope="col">End</th>
+                    <th scope="col">Days</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Reason</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+        </table>
+        <p id="history-empty" style="display:none;color:#595959">No leave requests yet.</p>
+    </div>
+
+</main>
+
+<script>
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').min = today;
+    document.getElementById('endDate').min = today;
+
+    async function api(path, options = {}) {
+        const res = await fetch(path, { credentials: 'include', ...options });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ message: res.statusText }));
+            throw new Error(err.message || res.statusText);
+        }
+        return res.json();
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('alert-error');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('alert-success').style.display = 'none';
+        el.focus();
+    }
+
+    function showSuccess(msg) {
+        const el = document.getElementById('alert-success');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('alert-error').style.display = 'none';
+        el.focus();
+    }
+
+    function daysBetween(start, end) {
+        const ms = new Date(end) - new Date(start);
+        return Math.floor(ms / 86400000) + 1;
+    }
+
+    async function loadAllowance() {
+        try {
+            const a = await api('/api/leaves/allowance');
+            document.getElementById('allowance-heading').textContent = `Leave Allowance ${a.year}`;
+            document.getElementById('stat-total').textContent = a.totalDays;
+            document.getElementById('stat-used').textContent = a.usedDays;
+            document.getElementById('stat-remaining').textContent = a.remainingDays;
+            const pct = a.totalDays > 0 ? Math.round((a.usedDays / a.totalDays) * 100) : 0;
+            const bar = document.getElementById('allowance-bar');
+            bar.setAttribute('aria-valuenow', a.usedDays);
+            bar.setAttribute('aria-valuemax', a.totalDays);
+            bar.setAttribute('aria-label', `Leave used: ${a.usedDays} of ${a.totalDays} days`);
+            document.getElementById('allowance-bar-fill').style.width = pct + '%';
+        } catch (e) {
+            document.getElementById('allowance-heading').textContent = 'Leave Allowance — unavailable';
+        }
+    }
+
+    async function loadHistory() {
+        try {
+            const leaves = await api('/api/leaves/my');
+            const loading = document.getElementById('history-loading');
+            const table = document.getElementById('history-table');
+            const empty = document.getElementById('history-empty');
+            const tbody = document.getElementById('history-body');
+
+            loading.style.display = 'none';
+
+            if (leaves.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            leaves.forEach(l => {
+                const days = daysBetween(l.startDate, l.endDate);
+                const status = l.status.toLowerCase();
+                const canCancel = l.status === 'PENDING' || l.status === 'APPROVED';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${l.type}</td>
+                    <td>${l.startDate}</td>
+                    <td>${l.endDate}</td>
+                    <td>${days}</td>
+                    <td><span class="badge badge-${status}">${l.status}</span></td>
+                    <td>${l.reason ? escHtml(l.reason) : ''}</td>
+                    <td>${canCancel
+                        ? `<button class="btn btn-secondary btn-sm" onclick="cancelLeave(${l.id})">Cancel</button>`
+                        : ''}</td>`;
+                tbody.appendChild(tr);
+            });
+            table.style.display = 'table';
+        } catch (e) {
+            document.getElementById('history-loading').textContent = 'Failed to load leave history.';
+        }
+    }
+
+    async function cancelLeave(id) {
+        if (!confirm('Cancel this leave request?')) return;
+        try {
+            await api(`/api/leaves/${id}/cancel`, { method: 'PUT' });
+            showSuccess('Leave request cancelled.');
+            await loadAllowance();
+            await loadHistory();
+        } catch (e) {
+            showError(e.message);
+        }
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // Duration preview
+    function updatePreview() {
+        const s = document.getElementById('startDate').value;
+        const e = document.getElementById('endDate').value;
+        const preview = document.getElementById('duration-preview');
+        if (s && e && e >= s) {
+            const days = daysBetween(s, e);
+            preview.textContent = `Duration: ${days} day${days !== 1 ? 's' : ''}`;
+            preview.style.display = 'block';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+    document.getElementById('startDate').addEventListener('change', updatePreview);
+    document.getElementById('endDate').addEventListener('change', updatePreview);
+
+    // Form submission
+    document.getElementById('leave-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        // Clear field errors
+        ['type','startDate','endDate'].forEach(f => {
+            document.getElementById(f + '-error').textContent = '';
+        });
+
+        const type = document.getElementById('type').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const reason = document.getElementById('reason').value;
+
+        let valid = true;
+        if (!type) {
+            document.getElementById('type-error').textContent = 'Please select a leave type.';
+            valid = false;
+        }
+        if (!startDate) {
+            document.getElementById('startDate-error').textContent = 'Please select a start date.';
+            valid = false;
+        }
+        if (!endDate) {
+            document.getElementById('endDate-error').textContent = 'Please select an end date.';
+            valid = false;
+        } else if (endDate < startDate) {
+            document.getElementById('endDate-error').textContent = 'End date cannot be before start date.';
+            valid = false;
+        }
+        if (!valid) return;
+
+        try {
+            await api('/api/leaves', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, startDate, endDate, reason: reason || null })
+            });
+            showSuccess('Leave request submitted successfully.');
+            document.getElementById('leave-form').reset();
+            document.getElementById('duration-preview').style.display = 'none';
+            await loadAllowance();
+            await loadHistory();
+        } catch (err) {
+            showError(err.message);
+        }
+    });
+
+    // Init
+    api('/api/employees/me').then(me => {
+        document.getElementById('nav-name').textContent = 'Hello, ' + me.name;
+    }).catch(() => {});
+    loadAllowance();
+    loadHistory();
+</script>
+</body>
+</html>

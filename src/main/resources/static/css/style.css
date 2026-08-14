@@ -294,3 +294,11 @@ table tr:hover td {
 .action-cell {
     white-space: nowrap;
 }
+
+.field-error {
+    display: block;
+    color: #c0392b;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    min-height: 1rem;
+}

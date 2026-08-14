@@ -17,6 +17,11 @@ public class AdminController {
 
     private final LeaveContextFacade facade;
 
+    @GetMapping("/allowances/{employeeId}")
+    public ResponseEntity<LeaveAllowanceDto> getAllowance(@PathVariable Long employeeId) {
+        return ResponseEntity.ok(facade.getAllowance(employeeId));
+    }
+
     @PutMapping("/allowances/{employeeId}")
     public ResponseEntity<LeaveAllowanceDto> amendAllowance(@PathVariable Long employeeId,
                                                              @Valid @RequestBody AmendAllowanceCommand command) {

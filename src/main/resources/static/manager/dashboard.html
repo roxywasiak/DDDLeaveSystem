@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard &mdash; Leave System</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav>
+    <a class="brand" href="/manager/dashboard" aria-label="Leave System home">Leave System</a>
+    <div class="nav-links">
+        <span id="nav-name" style="color:#ccc;font-size:0.9rem"></span>
+        <a href="/logout">Sign Out</a>
+    </div>
+</nav>
+
+<main class="container" id="main-content">
+
+    <div id="alert-error" class="alert alert-danger" role="alert" style="display:none"></div>
+    <div id="alert-success" class="alert alert-success" role="status" style="display:none"></div>
+
+    <div class="card">
+        <h2>Pending Leave Requests</h2>
+        <div id="loading" style="color:#595959">Loading...</div>
+        <table id="pending-table" style="display:none">
+            <thead>
+                <tr>
+                    <th scope="col">Employee</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Start</th>
+                    <th scope="col">End</th>
+                    <th scope="col">Days</th>
+                    <th scope="col">Reason</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="pending-body"></tbody>
+        </table>
+        <p id="empty-msg" style="display:none;color:#595959">No pending leave requests.</p>
+    </div>
+
+</main>
+
+<script>
+    async function api(path, options = {}) {
+        const res = await fetch(path, { credentials: 'include', ...options });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ message: res.statusText }));
+            throw new Error(err.message || res.statusText);
+        }
+        return res.json();
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('alert-error');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('alert-success').style.display = 'none';
+        el.focus();
+    }
+
+    function showSuccess(msg) {
+        const el = document.getElementById('alert-success');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('alert-error').style.display = 'none';
+        el.focus();
+    }
+
+    function daysBetween(start, end) {
+        return Math.floor((new Date(end) - new Date(start)) / 86400000) + 1;
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Cache employee names to avoid repeated fetches
+    const employeeCache = {};
+    async function getEmployeeName(id) {
+        if (employeeCache[id]) return employeeCache[id];
+        try {
+            const emp = await api(`/api/employees/${id}`);
+            employeeCache[id] = escHtml(emp.name);
+            return employeeCache[id];
+        } catch (_) {
+            return `Employee #${id}`;
+        }
+    }
+
+    async function loadPending() {
+        try {
+            const leaves = await api('/api/leaves/pending');
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('pending-table');
+            const empty = document.getElementById('empty-msg');
+            const tbody = document.getElementById('pending-body');
+
+            loading.style.display = 'none';
+
+            if (leaves.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            // Fetch all employee names in parallel
+            await Promise.all(leaves.map(l => getEmployeeName(l.employeeId)));
+
+            leaves.forEach(l => {
+                const days = daysBetween(l.startDate, l.endDate);
+                const tr = document.createElement('tr');
+                tr.id = `row-${l.id}`;
+                tr.innerHTML = `
+                    <td>${employeeCache[l.employeeId] || 'Employee #' + l.employeeId}</td>
+                    <td>${l.type}</td>
+                    <td>${l.startDate}</td>
+                    <td>${l.endDate}</td>
+                    <td>${days}</td>
+                    <td>${l.reason ? escHtml(l.reason) : ''}</td>
+                    <td class="action-cell">
+                        <button class="btn btn-success btn-sm" onclick="action(${l.id},'approve')"
+                                aria-label="Approve leave for ${employeeCache[l.employeeId] || 'employee'}">
+                            Approve
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="action(${l.id},'reject')"
+                                aria-label="Reject leave for ${employeeCache[l.employeeId] || 'employee'}"
+                                style="margin-left:0.4rem">
+                            Reject
+                        </button>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+            table.style.display = 'table';
+        } catch (e) {
+            document.getElementById('loading').textContent = 'Failed to load pending requests.';
+        }
+    }
+
+    async function action(id, type) {
+        const label = type === 'approve' ? 'Approve' : 'Reject';
+        if (!confirm(`${label} this leave request?`)) return;
+        try {
+            await api(`/api/leaves/${id}/${type}`, { method: 'PUT' });
+            // Remove row immediately for instant feedback
+            const row = document.getElementById(`row-${id}`);
+            if (row) row.remove();
+            // Show empty state if no rows left
+            if (document.getElementById('pending-body').children.length === 0) {
+                document.getElementById('pending-table').style.display = 'none';
+                document.getElementById('empty-msg').style.display = 'block';
+            }
+            showSuccess(`Leave ${type === 'approve' ? 'approved' : 'rejected'} successfully.`);
+        } catch (e) {
+            showError(e.message);
+        }
+    }
+
+    // Show query param messages (from form-post redirects)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('message')) showSuccess(params.get('message'));
+    if (params.get('error')) showError(params.get('error'));
+
+    // Init
+    api('/api/employees/me').then(me => {
+        document.getElementById('nav-name').textContent = 'Hello, ' + me.name;
+    }).catch(() => {});
+    loadPending();
+</script>
+</body>
+</html>

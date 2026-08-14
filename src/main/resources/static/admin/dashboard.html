@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard &mdash; Leave System</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav>
+    <a class="brand" href="/admin/dashboard" aria-label="Leave System home">Leave System</a>
+    <div class="nav-links">
+        <span id="nav-name" style="color:#ccc;font-size:0.9rem"></span>
+        <a href="/logout">Sign Out</a>
+    </div>
+</nav>
+
+<main class="container" id="main-content">
+
+    <div id="alert-error" class="alert alert-danger" role="alert" style="display:none"></div>
+    <div id="alert-success" class="alert alert-success" role="status" style="display:none"></div>
+
+    <div class="card">
+        <h2>Employee Allowances</h2>
+        <div id="loading" style="color:#595959">Loading...</div>
+        <table id="employees-table" style="display:none">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Allowance</th>
+                    <th scope="col">Amend</th>
+                </tr>
+            </thead>
+            <tbody id="employees-body"></tbody>
+        </table>
+    </div>
+
+</main>
+
+<script>
+    async function api(path, options = {}) {
+        const res = await fetch(path, { credentials: 'include', ...options });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ message: res.statusText }));
+            throw new Error(err.message || res.statusText);
+        }
+        return res.json();
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('alert-error');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('alert-success').style.display = 'none';
+        el.focus();
+    }
+
+    function showSuccess(msg) {
+        const el = document.getElementById('alert-success');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('alert-error').style.display = 'none';
+        el.focus();
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    async function getAllowance(employeeId) {
+        try {
+            const a = await api(`/api/admin/allowances/${employeeId}`);
+            return `${a.remainingDays} / ${a.totalDays} days remaining`;
+        } catch (_) {
+            return '<span style="color:#595959">No allowance set</span>';
+        }
+    }
+
+    async function loadEmployees() {
+        try {
+            const employees = await api('/api/employees');
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('employees-table');
+            const tbody = document.getElementById('employees-body');
+
+            // Fetch allowances in parallel
+            const allowances = await Promise.all(employees.map(e => getAllowance(e.id)));
+
+            tbody.innerHTML = '';
+            employees.forEach((emp, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${escHtml(emp.name)}</td>
+                    <td>${escHtml(emp.email)}</td>
+                    <td><span class="badge badge-${emp.role.toLowerCase()}">${emp.role}</span></td>
+                    <td id="allowance-${emp.id}">${allowances[i]}</td>
+                    <td>
+                        <form style="display:flex;gap:0.5rem;align-items:center"
+                              onsubmit="amend(event, ${emp.id}, '${escHtml(emp.name)}')">
+                            <label for="days-${emp.id}" class="sr-only">
+                                New allowance days for ${escHtml(emp.name)}
+                            </label>
+                            <input type="number" id="days-${emp.id}" name="totalDays"
+                                   min="1" max="365" style="width:70px;padding:0.3rem"
+                                   aria-label="Days for ${escHtml(emp.name)}" required>
+                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                        </form>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+
+            loading.style.display = 'none';
+            table.style.display = 'table';
+        } catch (e) {
+            document.getElementById('loading').textContent = 'Failed to load employees.';
+        }
+    }
+
+    async function amend(event, employeeId, name) {
+        event.preventDefault();
+        const input = document.getElementById(`days-${employeeId}`);
+        const totalDays = parseInt(input.value, 10);
+        if (!totalDays || totalDays < 1) return;
+
+        try {
+            await api(`/api/admin/allowances/${employeeId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ totalDays })
+            });
+            // Refresh just that cell
+            const cell = document.getElementById(`allowance-${employeeId}`);
+            const updated = await getAllowance(employeeId);
+            cell.innerHTML = updated;
+            input.value = '';
+            showSuccess(`Allowance updated for ${name}.`);
+        } catch (e) {
+            showError(e.message);
+        }
+    }
+
+    // Show query param messages
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('message')) showSuccess(params.get('message'));
+    if (params.get('error')) showError(params.get('error'));
+
+    // Init
+    api('/api/employees/me').then(me => {
+        document.getElementById('nav-name').textContent = 'Hello, ' + me.name;
+    }).catch(() => {});
+    loadEmployees();
+</script>
+</body>
+</html>

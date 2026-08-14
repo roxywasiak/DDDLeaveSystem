@@ -4,6 +4,7 @@ import com.example.leave.application.dto.EmployeeDto;
 import com.example.leave.application.facade.LeaveContextFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,11 @@ import java.util.List;
 public class EmployeeController {
 
     private final LeaveContextFacade facade;
+
+    @GetMapping("/me")
+    public ResponseEntity<EmployeeDto> getMe(Authentication auth) {
+        return ResponseEntity.ok(facade.getEmployeeByEmail(auth.getName()));
+    }
 
     @GetMapping
     public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
