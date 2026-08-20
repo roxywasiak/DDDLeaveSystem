@@ -28,6 +28,13 @@ public class Employee {
     @Column(nullable = false)
     private Role role;
 
+    @Column
+    private Long managerId;
+
+    public void assignManager(Long managerId) {
+        this.managerId = managerId;
+    }
+
     public Employee(String email, String password, String name, Role role) {
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("Email is required");

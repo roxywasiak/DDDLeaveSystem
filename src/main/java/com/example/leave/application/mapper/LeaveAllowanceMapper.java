@@ -4,6 +4,8 @@ import com.example.leave.application.dto.LeaveAllowanceDto;
 import com.example.leave.domain.model.LeaveAllowance;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class LeaveAllowanceMapper {
 
@@ -16,5 +18,9 @@ public class LeaveAllowanceMapper {
         dto.setUsedDays(allowance.getUsedDays());
         dto.setRemainingDays(allowance.getRemainingDays());
         return dto;
+    }
+
+    public List<LeaveAllowanceDto> toDtoList(List<LeaveAllowance> allowances) {
+        return allowances.stream().map(this::toDto).toList();
     }
 }

@@ -11,4 +11,5 @@ public class EmployeeDto {
     private String email;
     private String name;
     private Role role;
+    private Long managerId;
 }

@@ -1,12 +1,15 @@
 package com.example.leave.application.query;
 
+import com.example.leave.application.dto.EmployeeLeaveStatsDto;
 import com.example.leave.application.dto.LeaveAllowanceDto;
 import com.example.leave.application.dto.LeaveDto;
 import com.example.leave.application.exception.LeaveAllowanceNotFoundException;
 import com.example.leave.application.exception.LeaveRequestNotFoundException;
 import com.example.leave.application.mapper.LeaveAllowanceMapper;
 import com.example.leave.application.mapper.LeaveMapper;
+import com.example.leave.domain.model.Employee;
 import com.example.leave.domain.model.LeaveStatus;
+import com.example.leave.domain.repository.EmployeeRepository;
 import com.example.leave.domain.repository.LeaveAllowanceRepository;
 import com.example.leave.domain.repository.LeaveRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +28,7 @@ public class LeaveQueryHandler {
 
     private final LeaveRepository leaveRepository;
     private final LeaveAllowanceRepository leaveAllowanceRepository;
+    private final EmployeeRepository employeeRepository;
     private final LeaveMapper leaveMapper;
     private final LeaveAllowanceMapper leaveAllowanceMapper;
 
@@ -38,6 +44,42 @@ public class LeaveQueryHandler {
 
     public List<LeaveDto> getPendingLeaves() {
         return leaveMapper.toDtoList(leaveRepository.findByStatus(LeaveStatus.PENDING));
+    }
+
+    public List<LeaveDto> getPendingLeavesForManager(Long managerId) {
+        List<Long> teamIds = employeeRepository.findByManagerId(managerId)
+                .stream().map(e -> e.getId()).toList();
+        if (teamIds.isEmpty()) return List.of();
+        return leaveMapper.toDtoList(
+                leaveRepository.findByStatusAndEmployeeIdIn(LeaveStatus.PENDING, teamIds));
+    }
+
+    public List<EmployeeLeaveStatsDto> getTeamStatsForManager(Long managerId) {
+        List<Employee> team = employeeRepository.findByManagerId(managerId);
+        if (team.isEmpty()) return List.of();
+        List<Long> teamIds = team.stream().map(Employee::getId).toList();
+        Map<Long, String> nameById = team.stream()
+                .collect(Collectors.toMap(Employee::getId, Employee::getName));
+        int year = LocalDate.now().getYear();
+        Map<Long, Integer> approvedDays = leaveRepository
+                .sumApprovedDaysByEmployeeIdInAndYear(teamIds, year)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Number) row[1]).intValue()
+                ));
+        return teamIds.stream()
+                .map(id -> new EmployeeLeaveStatsDto(
+                        id,
+                        nameById.get(id),
+                        approvedDays.getOrDefault(id, 0)
+                ))
+                .toList();
+    }
+
+    public List<LeaveAllowanceDto> getAllowanceHistory(Long employeeId) {
+        return leaveAllowanceMapper.toDtoList(
+                leaveAllowanceRepository.findByEmployeeIdOrderByYearDesc(employeeId));
     }
 
     public LeaveAllowanceDto getAllowance(Long employeeId) {

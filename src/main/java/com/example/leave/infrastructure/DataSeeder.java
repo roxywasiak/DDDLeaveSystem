@@ -42,6 +42,8 @@ public class DataSeeder {
                     "John Doe",
                     Role.EMPLOYEE
             ));
+            employee.assignManager(manager.getId());
+            employeeRepository.save(employee);
             leaveAllowanceRepository.save(new LeaveAllowance(manager.getId(), year, 25));
             leaveAllowanceRepository.save(new LeaveAllowance(employee.getId(), year, 25));
 

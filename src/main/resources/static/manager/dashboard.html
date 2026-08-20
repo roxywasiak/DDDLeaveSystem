@@ -21,6 +21,22 @@
     <div id="alert-error" class="alert alert-danger" role="alert" style="display:none"></div>
     <div id="alert-success" class="alert alert-success" role="status" style="display:none"></div>
 
+    <!-- Team stats -->
+    <div class="card">
+        <h2>Team Summary <span style="font-size:0.85rem;font-weight:400;color:#595959">— approved days this year</span></h2>
+        <div id="stats-loading" style="color:#595959">Loading...</div>
+        <table id="stats-table" style="display:none">
+            <thead>
+                <tr>
+                    <th scope="col">Employee</th>
+                    <th scope="col">Approved Days This Year</th>
+                </tr>
+            </thead>
+            <tbody id="stats-body"></tbody>
+        </table>
+        <p id="stats-empty" style="display:none;color:#595959">No direct reports assigned.</p>
+    </div>
+
     <div class="card">
         <h2>Pending Leave Requests</h2>
         <div id="loading" style="color:#595959">Loading...</div>
@@ -87,6 +103,27 @@
             return employeeCache[id];
         } catch (_) {
             return `Employee #${id}`;
+        }
+    }
+
+    async function loadTeamStats() {
+        try {
+            const stats = await api('/api/leaves/team-stats');
+            document.getElementById('stats-loading').style.display = 'none';
+            if (stats.length === 0) {
+                document.getElementById('stats-empty').style.display = 'block';
+                return;
+            }
+            const tbody = document.getElementById('stats-body');
+            tbody.innerHTML = '';
+            stats.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${escHtml(s.employeeName)}</td><td>${s.approvedDaysThisYear}</td>`;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('stats-table').style.display = 'table';
+        } catch (e) {
+            document.getElementById('stats-loading').textContent = 'Failed to load team stats.';
         }
     }
 
@@ -178,6 +215,7 @@
     api('/api/employees/me').then(me => {
         document.getElementById('nav-name').textContent = 'Hello, ' + me.name;
     }).catch(() => {});
+    loadTeamStats();
     loadPending();
 </script>
 </body>

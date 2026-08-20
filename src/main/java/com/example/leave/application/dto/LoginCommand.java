@@ -2,13 +2,9 @@ package com.example.leave.application.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class LoginCommand {
     @Email
     @NotBlank
@@ -16,4 +12,17 @@ public class LoginCommand {
 
     @NotBlank
     private String password;
+
+    private String ipAddress;
+
+    public LoginCommand(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
+    public LoginCommand(String email, String password, String ipAddress) {
+        this.email = email;
+        this.password = password;
+        this.ipAddress = ipAddress;
+    }
 }

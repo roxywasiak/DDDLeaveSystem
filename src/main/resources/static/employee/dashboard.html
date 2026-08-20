@@ -40,6 +40,23 @@
         </div>
     </div>
 
+    <!-- Allowance history -->
+    <div class="card">
+        <h2>Allowance History</h2>
+        <div id="allowance-history-loading" style="color:#595959">Loading...</div>
+        <table id="allowance-history-table" style="display:none">
+            <thead>
+                <tr>
+                    <th scope="col">Year</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Used</th>
+                    <th scope="col">Remaining</th>
+                </tr>
+            </thead>
+            <tbody id="allowance-history-body"></tbody>
+        </table>
+    </div>
+
     <!-- Apply for leave -->
     <div class="card">
         <h2>Apply for Leave</h2>
@@ -370,11 +387,30 @@
         }
     });
 
+    async function loadAllowanceHistory() {
+        try {
+            const history = await api('/api/leaves/allowance/history');
+            document.getElementById('allowance-history-loading').style.display = 'none';
+            if (history.length === 0) return;
+            const tbody = document.getElementById('allowance-history-body');
+            tbody.innerHTML = '';
+            history.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${a.year}</td><td>${a.totalDays}</td><td>${a.usedDays}</td><td>${a.remainingDays}</td>`;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('allowance-history-table').style.display = 'table';
+        } catch (e) {
+            document.getElementById('allowance-history-loading').textContent = 'Failed to load allowance history.';
+        }
+    }
+
     // Init
     api('/api/employees/me').then(me => {
         document.getElementById('nav-name').textContent = 'Hello, ' + me.name;
     }).catch(() => {});
     loadAllowance();
+    loadAllowanceHistory();
     loadHistory();
 </script>
 </body>

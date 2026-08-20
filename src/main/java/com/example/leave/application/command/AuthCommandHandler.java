@@ -9,15 +9,20 @@ import com.example.leave.domain.model.Role;
 import com.example.leave.domain.repository.EmployeeRepository;
 import com.example.leave.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class AuthCommandHandler {
 
     private final EmployeeRepository employeeRepository;
@@ -40,9 +45,22 @@ public class AuthCommandHandler {
     }
 
     public AuthResponse login(LoginCommand command) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(command.getEmail(), command.getPassword())
-        );
-        return new AuthResponse(jwtService.generateToken(command.getEmail()));
+        String email = sanitize(command.getEmail());
+        String ip = sanitize(command.getIpAddress());
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(command.getEmail(), command.getPassword())
+            );
+            log.info("AUTH SUCCESS — timestamp={}, email={}, ip={}", Instant.now(), email, ip);
+            return new AuthResponse(jwtService.generateToken(command.getEmail()));
+        } catch (BadCredentialsException e) {
+            log.warn("AUTH FAILURE — timestamp={}, email={}, ip={}", Instant.now(), email, ip);
+            throw e;
+        }
+    }
+
+    private static String sanitize(String input) {
+        if (input == null) return "unknown";
+        return input.replaceAll("[\r\n\t]", "_");
     }
 }

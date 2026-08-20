@@ -3,6 +3,7 @@ package com.example.leave.interfaces.web;
 import com.example.leave.application.dto.LoginCommand;
 import com.example.leave.application.facade.LeaveContextFacade;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -17,6 +18,11 @@ public class AuthWebController {
 
     private final LeaveContextFacade facade;
 
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/login";
+    }
+
     @GetMapping("/login")
     public String loginPage() {
         return "forward:/login.html";
@@ -25,9 +31,10 @@ public class AuthWebController {
     @PostMapping("/login")
     public String login(@RequestParam String email,
                         @RequestParam String password,
+                        HttpServletRequest request,
                         HttpServletResponse response) {
         try {
-            var authResponse = facade.login(new LoginCommand(email, password));
+            var authResponse = facade.login(new LoginCommand(email, password, request.getRemoteAddr()));
             Cookie cookie = new Cookie("jwt", authResponse.getToken());
             cookie.setHttpOnly(true);
             cookie.setPath("/");

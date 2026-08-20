@@ -3,6 +3,7 @@ package com.example.leave.interfaces.rest;
 import com.example.leave.application.dto.AmendLeaveCommand;
 import com.example.leave.application.dto.CreateLeaveCommand;
 import com.example.leave.application.dto.EmployeeDto;
+import com.example.leave.application.dto.EmployeeLeaveStatsDto;
 import com.example.leave.application.dto.LeaveAllowanceDto;
 import com.example.leave.application.dto.LeaveDto;
 import com.example.leave.application.facade.LeaveContextFacade;
@@ -40,8 +41,9 @@ public class LeaveController {
 
     @GetMapping("/pending")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<List<LeaveDto>> getPendingLeaves() {
-        return ResponseEntity.ok(facade.getPendingLeaves());
+    public ResponseEntity<List<LeaveDto>> getPendingLeaves(Authentication auth) {
+        EmployeeDto manager = facade.getEmployeeByEmail(auth.getName());
+        return ResponseEntity.ok(facade.getPendingLeavesForManager(manager.getId()));
     }
 
     @GetMapping("/{id}")
@@ -76,6 +78,19 @@ public class LeaveController {
     public ResponseEntity<LeaveAllowanceDto> getMyAllowance(Authentication auth) {
         EmployeeDto employee = facade.getEmployeeByEmail(auth.getName());
         return ResponseEntity.ok(facade.getAllowance(employee.getId()));
+    }
+
+    @GetMapping("/allowance/history")
+    public ResponseEntity<List<LeaveAllowanceDto>> getAllowanceHistory(Authentication auth) {
+        EmployeeDto employee = facade.getEmployeeByEmail(auth.getName());
+        return ResponseEntity.ok(facade.getAllowanceHistory(employee.getId()));
+    }
+
+    @GetMapping("/team-stats")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<List<EmployeeLeaveStatsDto>> getTeamStats(Authentication auth) {
+        EmployeeDto manager = facade.getEmployeeByEmail(auth.getName());
+        return ResponseEntity.ok(facade.getTeamStatsForManager(manager.getId()));
     }
 
     @PutMapping("/{id}/cancel")

@@ -62,6 +62,18 @@ public class LeaveContextFacade {
         return leaveQueryHandler.getPendingLeaves();
     }
 
+    public List<LeaveDto> getPendingLeavesForManager(Long managerId) {
+        return leaveQueryHandler.getPendingLeavesForManager(managerId);
+    }
+
+    public List<EmployeeLeaveStatsDto> getTeamStatsForManager(Long managerId) {
+        return leaveQueryHandler.getTeamStatsForManager(managerId);
+    }
+
+    public List<LeaveAllowanceDto> getAllowanceHistory(Long employeeId) {
+        return leaveQueryHandler.getAllowanceHistory(employeeId);
+    }
+
     public LeaveAllowanceDto getAllowance(Long employeeId) {
         return leaveQueryHandler.getAllowance(employeeId);
     }
