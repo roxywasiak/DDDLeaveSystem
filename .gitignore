@@ -7,8 +7,9 @@ target/
 .DS_Store
 *.cer
 *.der
-*.md
 *.REPORT
 custom-truststore.jks
 zscaler-root.pem
-
+REPORT.md
+VIVA_GUIDE.md
+PRESENTATION_OUTLINE.md
