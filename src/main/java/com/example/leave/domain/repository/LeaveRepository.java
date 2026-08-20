@@ -13,13 +13,11 @@ public interface LeaveRepository extends JpaRepository<Leave, Long> {
     List<Leave> findByStatus(LeaveStatus status);
     List<Leave> findByStatusAndEmployeeIdIn(LeaveStatus status, List<Long> employeeIds);
 
-    @Query("SELECT l.employeeId, SUM(DATEDIFF(l.endDate, l.startDate) + 1) " +
-           "FROM Leave l " +
-           "WHERE l.status = 'APPROVED' " +
+    @Query("SELECT l FROM Leave l " +
+           "WHERE l.status = com.example.leave.domain.model.LeaveStatus.APPROVED " +
            "AND l.employeeId IN :employeeIds " +
-           "AND YEAR(l.startDate) = :year " +
-           "GROUP BY l.employeeId")
-    List<Object[]> sumApprovedDaysByEmployeeIdInAndYear(
+           "AND FUNCTION('YEAR', l.startDate) = :year")
+    List<Leave> findApprovedByEmployeeIdInAndYear(
             @Param("employeeIds") List<Long> employeeIds,
             @Param("year") int year);
 }

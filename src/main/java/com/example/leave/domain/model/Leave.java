@@ -71,7 +71,6 @@ public class Leave {
 
     public void reject(RejectionReason rejectionReason, String decidedBy) {
         if (this.status != LeaveStatus.PENDING) throw new IllegalStateException("Only pending leave can be rejected");
-        if (rejectionReason == null) throw new IllegalArgumentException("Rejection reason is required");
         this.rejectionReason = rejectionReason;
         this.status = LeaveStatus.REJECTED;
         this.decidedAt = LocalDateTime.now();

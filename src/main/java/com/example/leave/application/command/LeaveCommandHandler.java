@@ -58,7 +58,9 @@ public class LeaveCommandHandler {
 
     public LeaveDto rejectLeave(Long leaveId, String reason, String decidedBy) {
         Leave leave = findLeaveOrThrow(leaveId);
-        leave.reject(new RejectionReason(reason), decidedBy);
+        RejectionReason rejectionReason = (reason != null && !reason.isBlank())
+                ? new RejectionReason(reason) : null;
+        leave.reject(rejectionReason, decidedBy);
         LeaveDto dto = leaveMapper.toDto(leaveRepository.save(leave));
         eventPublisher.publishEvent(new LeaveRejectedEvent(leave.getId(), leave.getEmployeeId()));
         return dto;

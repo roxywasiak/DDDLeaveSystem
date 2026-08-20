@@ -8,6 +8,7 @@ import com.example.leave.application.exception.LeaveRequestNotFoundException;
 import com.example.leave.application.mapper.LeaveAllowanceMapper;
 import com.example.leave.application.mapper.LeaveMapper;
 import com.example.leave.domain.model.Employee;
+import com.example.leave.domain.model.Leave;
 import com.example.leave.domain.model.LeaveStatus;
 import com.example.leave.domain.repository.EmployeeRepository;
 import com.example.leave.domain.repository.LeaveAllowanceRepository;
@@ -62,11 +63,11 @@ public class LeaveQueryHandler {
                 .collect(Collectors.toMap(Employee::getId, Employee::getName));
         int year = LocalDate.now().getYear();
         Map<Long, Integer> approvedDays = leaveRepository
-                .sumApprovedDaysByEmployeeIdInAndYear(teamIds, year)
+                .findApprovedByEmployeeIdInAndYear(teamIds, year)
                 .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> ((Number) row[1]).intValue()
+                .collect(Collectors.groupingBy(
+                        Leave::getEmployeeId,
+                        Collectors.summingInt(Leave::getDurationInDays)
                 ));
         return teamIds.stream()
                 .map(id -> new EmployeeLeaveStatsDto(

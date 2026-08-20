@@ -1,4 +1,6 @@
 {
   "java.configuration.updateBuildConfiguration": "automatic",
-  "java.compile.nullAnalysis.mode": "disabled"
+  "java.compile.nullAnalysis.mode": "disabled",
+  "java.jdt.ls.vmargs": "-Djavax.net.ssl.trustStore=C:\\Users\\615520252\\DDDLeaveSystem\\custom-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit",
+  "java.configuration.maven.userSettings": "C:\\Users\\615520252\\.m2\\settings.xml"
 }

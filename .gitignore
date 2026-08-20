@@ -9,4 +9,6 @@ target/
 *.der
 *.md
 *.REPORT
+custom-truststore.jks
+zscaler-root.pem
 
