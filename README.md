@@ -14,7 +14,7 @@ A Leave Management System built with **Domain-Driven Design (DDD)**, **CQRS**, a
 | Security | Spring Security · JWT (HMAC-SHA384) · BCrypt |
 | Persistence | Spring Data JPA · H2 (test/dev) · PostgreSQL (prod) |
 | Build | Maven |
-| Testing | JUnit 5 · Mockito · MockMvc — 63 tests |
+| Testing | JUnit 5 · Mockito · MockMvc — 65 tests |
 | Frontend | Vanilla JS · HTML served as static files |
 
 ---
@@ -111,7 +111,7 @@ Admin:    admin@example.com / password123
 mvn test
 ```
 
-All 63 tests run against an in-memory H2 database — no external dependencies required.
+All 65 tests run against an in-memory H2 database — no external dependencies required.
 
 ---
 
@@ -181,14 +181,14 @@ H2 console (dev): `http://localhost:8080/h2-console`
 
 ## Testing
 
-63 tests across four classes:
+65 tests across four classes:
 
 | Class | Type | Tests |
 |-------|------|-------|
 | `LeaveTest` | Domain unit — no Spring, no Mockito, no DB | 13 |
 | `LeaveCommandHandlerTest` | Application layer — Mockito mocks | 5 |
 | `LeaveQueryHandlerTest` | Application layer — Mockito mocks | 4 |
-| `LeaveSystemEndToEndTest` | Full HTTP stack — `@SpringBootTest` + `MockMvc` | 42 |
+| `LeaveSystemEndToEndTest` | Full HTTP stack — `@SpringBootTest` + `MockMvc` | 43 |
 
 Integration tests cover: authentication, RBAC enforcement, leave creation validation, approval/rejection, cancellation, amendment, allowance deduction and restoration, team stats, employee queries, and admin operations.
 
