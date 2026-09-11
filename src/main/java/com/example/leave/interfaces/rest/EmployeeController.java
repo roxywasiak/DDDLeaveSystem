@@ -3,11 +3,13 @@ package com.example.leave.interfaces.rest;
 import com.example.leave.application.dto.EmployeeDto;
 import com.example.leave.application.facade.LeaveContextFacade;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -22,8 +24,9 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
-        return ResponseEntity.ok(facade.getAllEmployees());
+    public ResponseEntity<Page<EmployeeDto>> getAllEmployees(
+            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+        return ResponseEntity.ok(facade.getAllEmployees(pageable));
     }
 
     @GetMapping("/{id}")

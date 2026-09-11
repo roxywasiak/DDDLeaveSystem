@@ -6,6 +6,8 @@ import com.example.leave.application.dto.*;
 import com.example.leave.application.query.EmployeeQueryHandler;
 import com.example.leave.application.query.LeaveQueryHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -62,8 +64,8 @@ public class LeaveContextFacade {
         return leaveQueryHandler.getPendingLeaves();
     }
 
-    public List<LeaveDto> getPendingLeavesForManager(Long managerId) {
-        return leaveQueryHandler.getPendingLeavesForManager(managerId);
+    public Page<LeaveDto> getPendingLeavesForManager(Long managerId, Pageable pageable) {
+        return leaveQueryHandler.getPendingLeavesForManager(managerId, pageable);
     }
 
     public List<EmployeeLeaveStatsDto> getTeamStatsForManager(Long managerId) {
@@ -83,8 +85,8 @@ public class LeaveContextFacade {
     }
 
     // Employee queries
-    public List<EmployeeDto> getAllEmployees() {
-        return employeeQueryHandler.getAllEmployees();
+    public Page<EmployeeDto> getAllEmployees(Pageable pageable) {
+        return employeeQueryHandler.getAllEmployees(pageable);
     }
 
     public EmployeeDto getEmployeeById(Long id) {

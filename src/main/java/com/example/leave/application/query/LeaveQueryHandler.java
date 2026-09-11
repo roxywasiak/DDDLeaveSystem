@@ -14,6 +14,8 @@ import com.example.leave.domain.repository.EmployeeRepository;
 import com.example.leave.domain.repository.LeaveAllowanceRepository;
 import com.example.leave.domain.repository.LeaveRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,12 +49,12 @@ public class LeaveQueryHandler {
         return leaveMapper.toDtoList(leaveRepository.findByStatus(LeaveStatus.PENDING));
     }
 
-    public List<LeaveDto> getPendingLeavesForManager(Long managerId) {
+    public Page<LeaveDto> getPendingLeavesForManager(Long managerId, Pageable pageable) {
         List<Long> teamIds = employeeRepository.findByManagerId(managerId)
                 .stream().map(e -> e.getId()).toList();
-        if (teamIds.isEmpty()) return List.of();
-        return leaveMapper.toDtoList(
-                leaveRepository.findByStatusAndEmployeeIdIn(LeaveStatus.PENDING, teamIds));
+        if (teamIds.isEmpty()) return Page.empty(pageable);
+        return leaveRepository.findByStatusAndEmployeeIdIn(LeaveStatus.PENDING, teamIds, pageable)
+                .map(leaveMapper::toDto);
     }
 
     public List<EmployeeLeaveStatsDto> getTeamStatsForManager(Long managerId) {

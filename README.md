@@ -14,7 +14,7 @@ A Leave Management System built with **Domain-Driven Design (DDD)**, **CQRS**, a
 | Security | Spring Security · JWT (HMAC-SHA384) · BCrypt |
 | Persistence | Spring Data JPA · H2 (test/dev) · PostgreSQL (prod) |
 | Build | Maven |
-| Testing | JUnit 5 · Mockito · MockMvc — 65 tests |
+| Testing | JUnit 5 · Mockito · MockMvc — 64 tests |
 | Frontend | Vanilla JS · HTML served as static files |
 
 ---
@@ -111,7 +111,7 @@ Admin:    admin@example.com / password123
 mvn test
 ```
 
-All 65 tests run against an in-memory H2 database — no external dependencies required.
+All 64 tests run against an in-memory H2 database — no external dependencies required.
 
 ---
 
@@ -181,7 +181,7 @@ H2 console (dev): `http://localhost:8080/h2-console`
 
 ## Testing
 
-65 tests across four classes:
+64 tests across four classes:
 
 | Class | Type | Tests |
 |-------|------|-------|

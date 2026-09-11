@@ -9,6 +9,9 @@ import com.example.leave.application.dto.LeaveDto;
 import com.example.leave.application.facade.LeaveContextFacade;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,9 +44,11 @@ public class LeaveController {
 
     @GetMapping("/pending")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<List<LeaveDto>> getPendingLeaves(Authentication auth) {
+    public ResponseEntity<Page<LeaveDto>> getPendingLeaves(
+            @PageableDefault(size = 20, sort = "startDate") Pageable pageable,
+            Authentication auth) {
         EmployeeDto manager = facade.getEmployeeByEmail(auth.getName());
-        return ResponseEntity.ok(facade.getPendingLeavesForManager(manager.getId()));
+        return ResponseEntity.ok(facade.getPendingLeavesForManager(manager.getId(), pageable));
     }
 
     @GetMapping("/{id}")
@@ -60,7 +65,7 @@ public class LeaveController {
     @PutMapping("/{id}/reject")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<LeaveDto> rejectLeave(@PathVariable Long id,
-                                                 @RequestBody Map<String, String> body,
+                                                 @RequestBody(required = false) Map<String, String> body,
                                                  Authentication auth) {
         String reason = body != null ? body.get("reason") : null;
         return ResponseEntity.ok(facade.rejectLeave(id, reason, auth.getName()));

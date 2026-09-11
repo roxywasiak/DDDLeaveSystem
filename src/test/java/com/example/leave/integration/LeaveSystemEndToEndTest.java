@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -44,7 +43,6 @@ class LeaveSystemEndToEndTest {
     private String managerToken;
     private String adminToken;
     private Long employeeId;
-    private Long managerId;
 
     @BeforeEach
     void setUp() {
@@ -58,7 +56,7 @@ class LeaveSystemEndToEndTest {
                 passwordEncoder.encode("password123"), "Jane Manager", Role.MANAGER));
         Employee employee = employeeRepository.save(new Employee("employee@test.com",
                 passwordEncoder.encode("password123"), "John Doe", Role.EMPLOYEE));
-        Employee admin = employeeRepository.save(new Employee("admin@test.com",
+        employeeRepository.save(new Employee("admin@test.com",
                 passwordEncoder.encode("password123"), "System Admin", Role.ADMIN));
 
         employee.assignManager(manager.getId());
@@ -68,7 +66,6 @@ class LeaveSystemEndToEndTest {
         leaveAllowanceRepository.save(new LeaveAllowance(manager.getId(), year, 25));
 
         employeeId = employee.getId();
-        managerId = manager.getId();
         employeeToken = jwtService.generateToken("employee@test.com");
         managerToken = jwtService.generateToken("manager@test.com");
         adminToken = jwtService.generateToken("admin@test.com");
@@ -390,7 +387,7 @@ class LeaveSystemEndToEndTest {
         mockMvc.perform(get("/api/leaves/pending")
                         .header("Authorization", "Bearer " + managerToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].status").value("PENDING"));
+                .andExpect(jsonPath("$.content[0].status").value("PENDING"));
     }
 
     @Test @Order(30)
@@ -444,7 +441,7 @@ class LeaveSystemEndToEndTest {
         mockMvc.perform(get("/api/employees")
                         .header("Authorization", "Bearer " + employeeToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)));
+                .andExpect(jsonPath("$.content", hasSize(3)));
     }
 
     @Test @Order(36)
