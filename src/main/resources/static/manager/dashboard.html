@@ -129,7 +129,8 @@
 
     async function loadPending() {
         try {
-            const leaves = await api('/api/leaves/pending');
+            const data = await api('/api/leaves/pending');
+            const leaves = data.content ?? data;
             const loading = document.getElementById('loading');
             const table = document.getElementById('pending-table');
             const empty = document.getElementById('empty-msg');
