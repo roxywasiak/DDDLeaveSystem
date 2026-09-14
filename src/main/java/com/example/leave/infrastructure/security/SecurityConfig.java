@@ -59,6 +59,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/login", "/login.html", "/logout", "/403.html").permitAll()
                 .requestMatchers("/css/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/employee/**").hasAnyRole("EMPLOYEE", "MANAGER", "ADMIN")
                 .requestMatchers("/manager/**").hasRole("MANAGER")
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN")

@@ -14,3 +14,5 @@ REPORT.md
 VIVA_GUIDE.md
 PRESENTATION_OUTLINE.md
 commands.md
+app.log
+*.log
