@@ -1,7 +1,7 @@
 # Leave Management System
 ### COMP60047 Enterprise Application Development
 
-A Leave Management System built with **Domain-Driven Design (DDD)**, **CQRS**, and **Spring Boot 3.2.5**. The system supports three roles — EMPLOYEE, MANAGER, and ADMIN — covering the full leave lifecycle from application through to approval, rejection, amendment, and cancellation, with allowance tracking throughout.
+A Leave Management System built with **Domain-Driven Design (DDD)**, **CQRS**, and **Spring Boot 3.2.5**. The system supports three roles: EMPLOYEE, MANAGER, and ADMIN, covering the full leave lifecycle from application through to approval, rejection, amendment, and cancellation, with allowance tracking throughout.
 
 ---
 
@@ -9,19 +9,19 @@ A Leave Management System built with **Domain-Driven Design (DDD)**, **CQRS**, a
 
 | | |
 |---|---|
-| Language | Java 21 |
+| Language | Java 17 |
 | Framework | Spring Boot 3.2.5 |
 | Security | Spring Security · JWT (HMAC-SHA384) · BCrypt |
 | Persistence | Spring Data JPA · H2 (test/dev) · PostgreSQL (prod) |
 | Build | Maven |
-| Testing | JUnit 5 · Mockito · MockMvc — 64 tests |
+| Testing | JUnit 5 · Mockito · MockMvc (64 tests) |
 | Frontend | Vanilla JS · HTML served as static files |
 
 ---
 
 ## Architecture
 
-The system is structured around four strict DDD layers. Dependencies only flow inward — the domain layer has zero Spring imports.
+The system is structured around four strict DDD layers. Dependencies only flow inward; the domain layer has zero Spring imports.
 
 ```
 HTTP Request → Controller → Facade → CommandHandler / QueryHandler → Domain → Repository
@@ -38,23 +38,23 @@ HTTP Request → Controller → Facade → CommandHandler / QueryHandler → Dom
 
 Write and read concerns are separated into distinct handlers coordinated by a single facade:
 
-- `LeaveCommandHandler` — create, approve, reject, amend, cancel, amendAllowance
-- `LeaveQueryHandler` — getLeaveById, getLeavesByEmployee, getPendingLeaves, getAllowance, getTeamStats
-- `AuthCommandHandler` — register, login
-- `EmployeeQueryHandler` — getAllEmployees, getEmployeeById, getEmployeeByEmail
-- `LeaveContextFacade` — single entry point; controllers never depend on individual handlers directly
+- `LeaveCommandHandler`: create, approve, reject, amend, cancel, amendAllowance
+- `LeaveQueryHandler`: getLeaveById, getLeavesByEmployee, getPendingLeaves, getAllowance, getTeamStats
+- `AuthCommandHandler`: register, login
+- `EmployeeQueryHandler`: getAllEmployees, getEmployeeById, getEmployeeByEmail
+- `LeaveContextFacade`: single entry point; controllers never depend on individual handlers directly
 
 ### Domain Aggregates
 
-`Leave` and `LeaveAllowance` are rich aggregates — all business rules are enforced inside the entity:
+`Leave` and `LeaveAllowance` are rich aggregates; all business rules are enforced inside the entity:
 
-- `Leave.approve()` — throws `IllegalStateException` if status is not PENDING
-- `Leave.reject()` — requires a non-null `RejectionReason`; throws if not PENDING
-- `Leave.amend()` — validates date ordering; throws if not PENDING
-- `Leave.cancel()` — validates ownership (employee ID must match); throws if already CANCELLED
-- `LeaveAllowance.deduct()` — throws `IllegalStateException` if insufficient balance
-- `LeaveAllowance.restore()` — uses `Math.max(0, ...)` to prevent negative used days
-- `LeaveAllowance.amendTotalDays()` — validates positive total
+- `Leave.approve()`: throws `IllegalStateException` if status is not PENDING
+- `Leave.reject()`: requires a non-null `RejectionReason`; throws if not PENDING
+- `Leave.amend()`: validates date ordering; throws if not PENDING
+- `Leave.cancel()`: validates ownership (employee ID must match); throws if already CANCELLED
+- `LeaveAllowance.deduct()`: throws `IllegalStateException` if insufficient balance
+- `LeaveAllowance.restore()`: uses `Math.max(0, ...)` to prevent negative used days
+- `LeaveAllowance.amendTotalDays()`: validates positive total
 
 `RejectionReason` is modelled as a JPA `@Embeddable` value object, not a plain string.
 
@@ -62,15 +62,15 @@ Write and read concerns are separated into distinct handlers coordinated by a si
 
 ## Security
 
-- **JWT** — stateless authentication, HMAC-SHA384, 24-hour expiry
-- **HttpOnly cookie** — JWT stored in `HttpOnly`, `SameSite=Strict` cookie for the browser frontend, preventing XSS-based token theft
-- **RBAC** — enforced at three independent layers:
-  1. `SecurityFilterChain` URL matchers (e.g. `/api/admin/**` → `hasRole("ADMIN")`)
+- **JWT**: stateless authentication, HMAC-SHA384, 24-hour expiry
+- **HttpOnly cookie**: JWT stored in `HttpOnly`, `SameSite=Strict` cookie for the browser frontend, preventing XSS-based token theft
+- **RBAC**: enforced at three independent layers:
+  1. `SecurityFilterChain` URL matchers (e.g. `/api/admin/**` requires `hasRole("ADMIN")`)
   2. `@PreAuthorize` method annotations on controllers
   3. Domain ownership checks inside aggregate methods (e.g. `Leave.cancel()`)
-- **Rate limiting** — sliding window, 5 requests/minute/IP on `/api/auth/login`, implemented with `ConcurrentHashMap<String, Deque<Long>>`
-- **Header obfuscation** — `Server` and `X-Powered-By` headers cleared on every response
-- **Log injection prevention** — email and IP fields sanitised before logging in `AuthCommandHandler`
+- **Rate limiting**: sliding window, 5 requests/minute/IP on `/api/auth/login`, implemented with `ConcurrentHashMap<String, Deque<Long>>`
+- **Header obfuscation**: `Server` and `X-Powered-By` headers cleared on every response
+- **Log injection prevention**: email and IP fields sanitised before logging in `AuthCommandHandler`
 
 ---
 
@@ -78,8 +78,8 @@ Write and read concerns are separated into distinct handlers coordinated by a si
 
 When leave is approved or rejected, a domain event is published via Spring's `ApplicationEventPublisher`:
 
-- `@TransactionalEventListener(phase = AFTER_COMMIT)` — event only fires if the DB transaction committed, preventing phantom events on rollback
-- `@Async` — listener runs on a separate thread pool, does not block the HTTP response
+- `@TransactionalEventListener(phase = AFTER_COMMIT)`: event only fires if the DB transaction committed, preventing phantom events on rollback
+- `@Async`: listener runs on a separate thread pool, does not block the HTTP response
 - `EventStoreService` persists each event as an immutable JSON record in the `event_store` table using `Propagation.REQUIRES_NEW`
 
 ---
@@ -88,7 +88,7 @@ When leave is approved or rejected, a domain event is published via Spring's `Ap
 
 ### Prerequisites
 
-- Java 21
+- Java 17
 - Maven 3.8+
 
 ### Run (H2 in-memory, no external DB required for tests)
@@ -111,7 +111,7 @@ Admin:    admin@example.com / password123
 mvn test
 ```
 
-All 64 tests run against an in-memory H2 database — no external dependencies required.
+All 64 tests run against an in-memory H2 database with no external dependencies required.
 
 ---
 
@@ -125,7 +125,7 @@ Three role-specific dashboards served as static HTML:
 | Manager | `/manager/dashboard` | View pending requests · approve · reject · team stats |
 | Admin | `/admin/dashboard` | View and amend employee allowances |
 
-Login at `http://localhost:8080/login.html`. The web controller reads the JWT cookie, resolves the role, and redirects to the correct dashboard — the client never self-selects its own view.
+Login at `http://localhost:8080/login.html`. The web controller reads the JWT cookie, resolves the role, and redirects to the correct dashboard. The client never self-selects its own view.
 
 H2 console (dev): `http://localhost:8080/h2-console`
 - JDBC URL: `jdbc:h2:mem:testdb`
@@ -139,8 +139,8 @@ H2 console (dev): `http://localhost:8080/h2-console`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/auth/register` | Register a new employee — returns JWT |
-| `POST` | `/api/auth/login` | Login — returns JWT |
+| `POST` | `/api/auth/register` | Register a new employee (returns JWT) |
+| `POST` | `/api/auth/login` | Login (returns JWT) |
 
 ### Leaves — authenticated (EMPLOYEE)
 
@@ -159,7 +159,7 @@ H2 console (dev): `http://localhost:8080/h2-console`
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/leaves/pending` | Get pending requests for own team |
-| `PUT` | `/api/leaves/{id}/approve` | Approve leave — deducts from allowance |
+| `PUT` | `/api/leaves/{id}/approve` | Approve leave (deducts from allowance) |
 | `PUT` | `/api/leaves/{id}/reject` | Reject leave with optional reason body |
 | `GET` | `/api/leaves/team-stats` | Get team leave statistics |
 
@@ -185,10 +185,10 @@ H2 console (dev): `http://localhost:8080/h2-console`
 
 | Class | Type | Tests |
 |-------|------|-------|
-| `LeaveTest` | Domain unit — no Spring, no Mockito, no DB | 13 |
-| `LeaveCommandHandlerTest` | Application layer — Mockito mocks | 5 |
-| `LeaveQueryHandlerTest` | Application layer — Mockito mocks | 4 |
-| `LeaveSystemEndToEndTest` | Full HTTP stack — `@SpringBootTest` + `MockMvc` | 43 |
+| `LeaveTest` | Domain unit: no Spring, no Mockito, no DB | 13 |
+| `LeaveCommandHandlerTest` | Application layer: Mockito mocks | 5 |
+| `LeaveQueryHandlerTest` | Application layer: Mockito mocks | 4 |
+| `LeaveSystemEndToEndTest` | Full HTTP stack: `@SpringBootTest` + `MockMvc` | 42 |
 
 Integration tests cover: authentication, RBAC enforcement, leave creation validation, approval/rejection, cancellation, amendment, allowance deduction and restoration, team stats, employee queries, and admin operations.
 
@@ -211,7 +211,8 @@ src/
 │   │   ├── dto/            CreateLeaveCommand, AmendLeaveCommand, LeaveDto, LeaveAllowanceDto, ...
 │   │   ├── event/          LeaveEventListener.java
 │   │   ├── mapper/         LeaveMapper.java, LeaveAllowanceMapper.java, EmployeeMapper.java
-│   │   └── exception/      LeaveRequestNotFoundException, EmployeeNotFoundException, ...
+│   │   └── exception/      LeaveRequestNotFoundException, EmployeeNotFoundException,
+│   │                       LeaveAllowanceNotFoundException, DuplicateEmailException
 │   ├── infrastructure/
 │   │   ├── security/       SecurityConfig.java, JwtService.java, JwtAuthFilter.java
 │   │   ├── ratelimit/      RateLimitFilter.java
@@ -249,7 +250,7 @@ jwt.expiration=86400000
 server.server-header=
 ```
 
-Tests use a separate `src/test/resources/application.properties` with H2 and a fixed test secret — no environment variables required.
+Tests use a separate `src/test/resources/application.properties` with H2 and a fixed test secret. No environment variables required.
 
 ---
 
