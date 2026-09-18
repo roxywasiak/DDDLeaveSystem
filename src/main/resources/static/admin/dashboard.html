@@ -81,7 +81,8 @@
 
     async function loadEmployees() {
         try {
-            const employees = await api('/api/employees');
+            const page = await api('/api/employees?size=100');
+            const employees = page.content;
             const loading = document.getElementById('loading');
             const table = document.getElementById('employees-table');
             const tbody = document.getElementById('employees-body');
