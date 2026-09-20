@@ -169,6 +169,16 @@ H2 console (dev): `http://localhost:8080/h2-console`
 |--------|----------|-------------|
 | `GET` | `/api/admin/allowances/{employeeId}` | Get any employee's allowance |
 | `PUT` | `/api/admin/allowances/{employeeId}` | Amend any employee's total days |
+| `POST` | `/api/admin/employees` | Create an employee with any role |
+| `PUT` | `/api/admin/employees/{employeeId}` | Amend an employee's role and department |
+| `GET` | `/api/admin/leaves` | View all leave requests, filterable by `employeeId` and `status` (paginated) |
+
+### Notifications — authenticated
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/notifications` | Get own notifications ordered by timestamp |
+| `PUT` | `/api/notifications/{id}/read` | Mark a notification as read (ownership enforced) |
 
 ### Employees — authenticated
 
@@ -203,12 +213,13 @@ src/
 │   │   ├── model/          Leave.java, LeaveAllowance.java, Employee.java,
 │   │   │                   RejectionReason.java, LeaveStatus.java, LeaveType.java, Role.java
 │   │   ├── repository/     LeaveRepository.java, LeaveAllowanceRepository.java, EmployeeRepository.java
-│   │   └── event/          LeaveApprovedEvent.java, LeaveRejectedEvent.java
+│   │   └── event/          LeaveApprovedEvent.java, LeaveRejectedEvent.java, LeaveCancelledEvent.java
 │   ├── application/
 │   │   ├── command/        LeaveCommandHandler.java, AuthCommandHandler.java
 │   │   ├── query/          LeaveQueryHandler.java, EmployeeQueryHandler.java
 │   │   ├── facade/         LeaveContextFacade.java
-│   │   ├── dto/            CreateLeaveCommand, AmendLeaveCommand, LeaveDto, LeaveAllowanceDto, ...
+│   │   ├── dto/            CreateLeaveCommand, AmendLeaveCommand, AdminCreateEmployeeCommand,
+│   │   │                   AmendEmployeeCommand, LeaveDto, LeaveAllowanceDto, EmployeeDto, ...
 │   │   ├── event/          LeaveEventListener.java
 │   │   ├── mapper/         LeaveMapper.java, LeaveAllowanceMapper.java, EmployeeMapper.java
 │   │   └── exception/      LeaveRequestNotFoundException, EmployeeNotFoundException,
@@ -217,10 +228,12 @@ src/
 │   │   ├── security/       SecurityConfig.java, JwtService.java, JwtAuthFilter.java
 │   │   ├── ratelimit/      RateLimitFilter.java
 │   │   ├── eventstore/     EventStore.java, EventStoreService.java, EventStoreRepository.java
+│   │   ├── notification/   LeaveNotification.java, LeaveNotificationRepository.java
 │   │   └── DataSeeder.java
 │   └── interfaces/
 │       ├── rest/           LeaveController.java, AuthController.java, AdminController.java,
-│       │                   EmployeeController.java, GlobalExceptionHandler.java
+│       │                   EmployeeController.java, NotificationController.java,
+│       │                   GlobalExceptionHandler.java
 │       └── web/            AuthWebController.java, EmployeeDashboardController.java,
 │                           ManagerDashboardController.java, AdminDashboardController.java
 ├── main/resources/

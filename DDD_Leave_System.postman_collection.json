@@ -340,7 +340,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"startDate\": \"2027-06-02\",\n  \"endDate\": \"2027-06-06\",\n  \"reason\": \"Updated dates\"\n}"
+              "raw": "{\n  \"type\": \"ANNUAL\",\n  \"startDate\": \"2027-06-02\",\n  \"endDate\": \"2027-06-06\",\n  \"reason\": \"Updated dates\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/amend",
@@ -670,7 +670,7 @@
       ]
     },
     {
-      "name": "Admin - Allowances",
+      "name": "Admin",
       "item": [
         {
           "name": "Get Employee Allowance (Admin)",
@@ -747,6 +747,224 @@
               "raw": "{{baseUrl}}/api/admin/allowances/{{employeeId}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "admin", "allowances", "{{employeeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Employee (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has id and role', () => { var j = pm.response.json(); pm.expect(j.id).to.be.a('number'); pm.expect(j.role).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Manager\",\n  \"email\": \"newmanager@example.com\",\n  \"password\": \"{{seedPassword}}\",\n  \"role\": \"MANAGER\",\n  \"department\": \"Engineering\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "employees"]
+            }
+          }
+        },
+        {
+          "name": "Create Employee - Employee Forbidden (invalid)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Blocked\",\n  \"email\": \"blocked@example.com\",\n  \"password\": \"{{seedPassword}}\",\n  \"role\": \"MANAGER\",\n  \"department\": \"Engineering\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "employees"]
+            }
+          }
+        },
+        {
+          "name": "Amend Employee Role and Department (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Role updated', () => pm.expect(pm.response.json().role).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"MANAGER\",\n  \"department\": \"Operations\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "employees", "{{employeeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Leaves Filtered (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns page', () => pm.expect(pm.response.json().content).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/leaves?employeeId={{employeeId}}&status=PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "leaves"],
+              "query": [
+                { "key": "employeeId", "value": "{{employeeId}}" },
+                { "key": "status", "value": "PENDING" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Leaves - Employee Forbidden (invalid)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/leaves",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "leaves"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Get Notifications - No Auth (invalid)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/1/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "1", "read"]
             }
           }
         }
