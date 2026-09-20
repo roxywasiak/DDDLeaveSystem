@@ -1,10 +1,15 @@
 package com.example.leave.application.command;
 
+import com.example.leave.application.dto.AdminCreateEmployeeCommand;
+import com.example.leave.application.dto.AmendEmployeeCommand;
 import com.example.leave.application.dto.AuthResponse;
 import com.example.leave.application.dto.LoginCommand;
 import com.example.leave.application.dto.RegisterCommand;
 import com.example.leave.application.exception.DuplicateEmailException;
+import com.example.leave.application.exception.EmployeeNotFoundException;
+import com.example.leave.application.mapper.EmployeeMapper;
 import com.example.leave.domain.model.Employee;
+import com.example.leave.application.dto.EmployeeDto;
 import com.example.leave.domain.model.Role;
 import com.example.leave.domain.repository.EmployeeRepository;
 import com.example.leave.infrastructure.security.JwtService;
@@ -29,6 +34,7 @@ public class AuthCommandHandler {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmployeeMapper employeeMapper;
 
     public AuthResponse register(RegisterCommand command) {
         if (employeeRepository.existsByEmail(command.getEmail())) {
@@ -42,6 +48,30 @@ public class AuthCommandHandler {
         );
         employeeRepository.save(employee);
         return new AuthResponse(jwtService.generateToken(employee.getEmail()));
+    }
+
+    public EmployeeDto adminCreateEmployee(AdminCreateEmployeeCommand command) {
+        if (employeeRepository.existsByEmail(command.getEmail())) {
+            throw new DuplicateEmailException(command.getEmail());
+        }
+        Employee employee = new Employee(
+                command.getEmail(),
+                passwordEncoder.encode(command.getPassword()),
+                command.getName(),
+                command.getRole(),
+                command.getDepartment()
+        );
+        if (command.getManagerId() != null) {
+            employee.assignManager(command.getManagerId());
+        }
+        return employeeMapper.toDto(employeeRepository.save(employee));
+    }
+
+    public EmployeeDto amendEmployee(Long employeeId, AmendEmployeeCommand command) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
+        employee.updateRoleAndDepartment(command.getRole(), command.getDepartment());
+        return employeeMapper.toDto(employeeRepository.save(employee));
     }
 
     public AuthResponse login(LoginCommand command) {

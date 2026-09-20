@@ -13,6 +13,7 @@ import com.example.leave.infrastructure.security.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -38,6 +39,7 @@ class LeaveSystemEndToEndTest {
     @Autowired private LeaveAllowanceRepository leaveAllowanceRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JwtService jwtService;
+    @Value("${test.user.password}") private String testPassword;
 
     private String employeeToken;
     private String managerToken;
@@ -53,11 +55,11 @@ class LeaveSystemEndToEndTest {
         int year = LocalDate.now().getYear();
 
         Employee manager = employeeRepository.save(new Employee("manager@test.com",
-                passwordEncoder.encode("password123"), "Jane Manager", Role.MANAGER));
+                passwordEncoder.encode(testPassword), "Jane Manager", Role.MANAGER));
         Employee employee = employeeRepository.save(new Employee("employee@test.com",
-                passwordEncoder.encode("password123"), "John Doe", Role.EMPLOYEE));
+                passwordEncoder.encode(testPassword), "John Doe", Role.EMPLOYEE));
         employeeRepository.save(new Employee("admin@test.com",
-                passwordEncoder.encode("password123"), "System Admin", Role.ADMIN));
+                passwordEncoder.encode(testPassword), "System Admin", Role.ADMIN));
 
         employee.assignManager(manager.getId());
         employeeRepository.save(employee);
@@ -78,8 +80,8 @@ class LeaveSystemEndToEndTest {
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"New User","email":"new@test.com","password":"password123"}
-                                """))
+                                {"name":"New User","email":"new@test.com","password":"%s"}
+                                """.formatted(testPassword)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.token").exists());
     }
@@ -89,8 +91,8 @@ class LeaveSystemEndToEndTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"employee@test.com","password":"password123"}
-                                """))
+                                {"email":"employee@test.com","password":"%s"}
+                                """.formatted(testPassword)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").exists());
     }
@@ -110,8 +112,8 @@ class LeaveSystemEndToEndTest {
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"Test","email":"not-an-email","password":"password123"}
-                                """))
+                                {"name":"Test","email":"not-an-email","password":"%s"}
+                                """.formatted(testPassword)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -120,8 +122,8 @@ class LeaveSystemEndToEndTest {
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"Duplicate","email":"employee@test.com","password":"password123"}
-                                """))
+                                {"name":"Duplicate","email":"employee@test.com","password":"%s"}
+                                """.formatted(testPassword)))
                 .andExpect(status().isConflict());
     }
 

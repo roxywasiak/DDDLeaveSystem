@@ -4,12 +4,14 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl",       "value": "http://localhost:8080" },
+    { "key": "baseUrl", "value": "http://localhost:8080" },
     { "key": "employeeToken", "value": "" },
-    { "key": "managerToken",  "value": "" },
-    { "key": "adminToken",    "value": "" },
-    { "key": "leaveId",       "value": "" },
-    { "key": "employeeId",    "value": "1" }
+    { "key": "managerToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "leaveId", "value": "" },
+    { "key": "employeeId", "value": "1" },
+    { "key": "seedPassword", "value": "", "description": "Set to the seeded user password before running the collection" },
+    { "key": "wrongPassword", "value": "", "description": "Set to an incorrect password value for negative login tests" }
   ],
   "item": [
     {
@@ -17,95 +19,193 @@
       "item": [
         {
           "name": "Register New User",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-            "pm.test('Token returned', () => pm.expect(pm.response.json().token).to.be.a('string'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Token returned', () => pm.expect(pm.response.json().token).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"{{seedPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
           }
         },
         {
           "name": "Login Employee (seeded)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "var json = pm.response.json();",
-            "pm.test('Token returned', () => pm.expect(json.token).to.be.a('string'));",
-            "pm.collectionVariables.set('employeeToken', json.token);"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var json = pm.response.json();",
+                  "pm.test('Token returned', () => pm.expect(json.token).to.be.a('string'));",
+                  "pm.collectionVariables.set('employeeToken', json.token);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"employee@example.com\",\n  \"password\": \"password123\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employee@example.com\",\n  \"password\": \"{{seedPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
           }
         },
         {
           "name": "Login Manager (seeded)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "var json = pm.response.json();",
-            "pm.collectionVariables.set('managerToken', json.token);"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('managerToken', json.token);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"manager@example.com\",\n  \"password\": \"password123\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@example.com\",\n  \"password\": \"{{seedPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
           }
         },
         {
           "name": "Login Admin (seeded)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "var json = pm.response.json();",
-            "pm.collectionVariables.set('adminToken', json.token);"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('adminToken', json.token);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"{{seedPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
           }
         },
         {
           "name": "Login - Wrong Password (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 401', () => pm.response.to.have.status(401));",
-            "pm.test('Error returned', () => pm.expect(pm.response.json().error).to.equal('Invalid credentials'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Error returned', () => pm.expect(pm.response.json().error).to.equal('Invalid credentials'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"employee@example.com\",\n  \"password\": \"wrongpassword\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employee@example.com\",\n  \"password\": \"{{wrongPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
           }
         },
         {
           "name": "Register - Duplicate Email (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 409', () => pm.response.to.have.status(409));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Duplicate\",\n  \"email\": \"employee@example.com\",\n  \"password\": \"password123\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Duplicate\",\n  \"email\": \"employee@example.com\",\n  \"password\": \"{{seedPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
           }
         },
         {
           "name": "Register - Invalid Email (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 400', () => pm.response.to.have.status(400));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test\",\n  \"email\": \"not-an-email\",\n  \"password\": \"password123\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test\",\n  \"email\": \"not-an-email\",\n  \"password\": \"{{seedPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
           }
         }
       ]
@@ -115,110 +215,218 @@
       "item": [
         {
           "name": "Apply for Leave",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-            "var json = pm.response.json();",
-            "pm.test('Status is PENDING', () => pm.expect(json.status).to.equal('PENDING'));",
-            "pm.collectionVariables.set('leaveId', json.id);"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "var json = pm.response.json();",
+                  "pm.test('Status is PENDING', () => pm.expect(json.status).to.equal('PENDING'));",
+                  "pm.collectionVariables.set('leaveId', json.id);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"type\": \"ANNUAL\",\n  \"startDate\": \"2027-06-01\",\n  \"endDate\": \"2027-06-05\",\n  \"reason\": \"Family holiday\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/leaves", "host": ["{{baseUrl}}"], "path": ["api","leaves"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ANNUAL\",\n  \"startDate\": \"2027-06-01\",\n  \"endDate\": \"2027-06-05\",\n  \"reason\": \"Family holiday\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves"]
+            }
           }
         },
         {
           "name": "Get My Leaves",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/my", "host": ["{{baseUrl}}"], "path": ["api","leaves","my"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "my"]
+            }
           }
         },
         {
           "name": "Get Leave By ID",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Has id and status', () => { var j = pm.response.json(); pm.expect(j.id).to.be.a('number'); pm.expect(j.status).to.be.a('string'); });"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has id and status', () => { var j = pm.response.json(); pm.expect(j.id).to.be.a('number'); pm.expect(j.status).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/{{leaveId}}", "host": ["{{baseUrl}}"], "path": ["api","leaves","{{leaveId}}"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/{{leaveId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "{{leaveId}}"]
+            }
           }
         },
         {
           "name": "Get Leave - Not Found (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 404', () => pm.response.to.have.status(404));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/9999", "host": ["{{baseUrl}}"], "path": ["api","leaves","9999"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "9999"]
+            }
           }
         },
         {
           "name": "Amend Leave",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Status still PENDING', () => pm.expect(pm.response.json().status).to.equal('PENDING'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status still PENDING', () => pm.expect(pm.response.json().status).to.equal('PENDING'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"startDate\": \"2027-06-02\",\n  \"endDate\": \"2027-06-06\",\n  \"reason\": \"Updated dates\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/amend", "host": ["{{baseUrl}}"], "path": ["api","leaves","{{leaveId}}","amend"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2027-06-02\",\n  \"endDate\": \"2027-06-06\",\n  \"reason\": \"Updated dates\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/amend",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "{{leaveId}}", "amend"]
+            }
           }
         },
         {
           "name": "Cancel Leave",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Status is CANCELLED', () => pm.expect(pm.response.json().status).to.equal('CANCELLED'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status is CANCELLED', () => pm.expect(pm.response.json().status).to.equal('CANCELLED'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/cancel", "host": ["{{baseUrl}}"], "path": ["api","leaves","{{leaveId}}","cancel"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "{{leaveId}}", "cancel"]
+            }
           }
         },
         {
           "name": "Apply Leave - Invalid Dates (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 400', () => pm.response.to.have.status(400));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"type\": \"ANNUAL\",\n  \"startDate\": \"2020-01-01\",\n  \"endDate\": \"2020-01-05\",\n  \"reason\": \"Past dates\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/leaves", "host": ["{{baseUrl}}"], "path": ["api","leaves"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ANNUAL\",\n  \"startDate\": \"2020-01-01\",\n  \"endDate\": \"2020-01-05\",\n  \"reason\": \"Past dates\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves"]
+            }
           }
         },
         {
           "name": "Apply Leave - No Auth (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 403', () => pm.response.to.have.status(403));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"type\": \"ANNUAL\",\n  \"startDate\": \"2027-06-01\",\n  \"endDate\": \"2027-06-05\",\n  \"reason\": \"No token\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/leaves", "host": ["{{baseUrl}}"], "path": ["api","leaves"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ANNUAL\",\n  \"startDate\": \"2027-06-01\",\n  \"endDate\": \"2027-06-05\",\n  \"reason\": \"No token\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves"]
+            }
           }
         }
       ]
@@ -228,26 +436,52 @@
       "item": [
         {
           "name": "Get My Allowance",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Has totalDays and usedDays', () => { var j = pm.response.json(); pm.expect(j.totalDays).to.be.a('number'); pm.expect(j.usedDays).to.be.a('number'); });"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has totalDays and usedDays', () => { var j = pm.response.json(); pm.expect(j.totalDays).to.be.a('number'); pm.expect(j.usedDays).to.be.a('number'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/allowance", "host": ["{{baseUrl}}"], "path": ["api","leaves","allowance"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/allowance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "allowance"]
+            }
           }
         },
         {
           "name": "Get Allowance History",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/allowance/history", "host": ["{{baseUrl}}"], "path": ["api","leaves","allowance","history"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/allowance/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "allowance", "history"]
+            }
           }
         }
       ]
@@ -257,88 +491,180 @@
       "item": [
         {
           "name": "Get Pending Leaves",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/pending", "host": ["{{baseUrl}}"], "path": ["api","leaves","pending"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "pending"]
+            }
           }
         },
         {
           "name": "Get Pending - Employee Forbidden (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 403', () => pm.response.to.have.status(403));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/pending", "host": ["{{baseUrl}}"], "path": ["api","leaves","pending"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "pending"]
+            }
           }
         },
         {
           "name": "Approve Leave",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Status is APPROVED', () => pm.expect(pm.response.json().status).to.equal('APPROVED'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status is APPROVED', () => pm.expect(pm.response.json().status).to.equal('APPROVED'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/approve", "host": ["{{baseUrl}}"], "path": ["api","leaves","{{leaveId}}","approve"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "{{leaveId}}", "approve"]
+            }
           }
         },
         {
           "name": "Approve - Employee Forbidden (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 403', () => pm.response.to.have.status(403));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/approve", "host": ["{{baseUrl}}"], "path": ["api","leaves","{{leaveId}}","approve"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "{{leaveId}}", "approve"]
+            }
           }
         },
         {
           "name": "Approve Already Approved (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 409', () => pm.response.to.have.status(409));",
-            "pm.test('Error includes Only pending', () => pm.expect(pm.response.json().error).to.include('Only pending'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Error includes Only pending', () => pm.expect(pm.response.json().error).to.include('Only pending'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/approve", "host": ["{{baseUrl}}"], "path": ["api","leaves","{{leaveId}}","approve"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "{{leaveId}}", "approve"]
+            }
           }
         },
         {
           "name": "Reject Leave",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Status is REJECTED', () => pm.expect(pm.response.json().status).to.equal('REJECTED'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status is REJECTED', () => pm.expect(pm.response.json().status).to.equal('REJECTED'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{managerToken}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Team at full capacity\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/reject", "host": ["{{baseUrl}}"], "path": ["api","leaves","{{leaveId}}","reject"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Team at full capacity\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/{{leaveId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "{{leaveId}}", "reject"]
+            }
           }
         },
         {
           "name": "Get Team Stats",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/leaves/team-stats", "host": ["{{baseUrl}}"], "path": ["api","leaves","team-stats"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/leaves/team-stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leaves", "team-stats"]
+            }
           }
         }
       ]
@@ -348,22 +674,42 @@
       "item": [
         {
           "name": "Get Employee Allowance (Admin)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Has totalDays', () => pm.expect(pm.response.json().totalDays).to.be.a('number'));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has totalDays', () => pm.expect(pm.response.json().totalDays).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/admin/allowances/{{employeeId}}", "host": ["{{baseUrl}}"], "path": ["api","admin","allowances","{{employeeId}}"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/allowances/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "allowances", "{{employeeId}}"]
+            }
           }
         },
         {
           "name": "Amend Employee Allowance (Admin)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('totalDays updated', () => pm.expect(pm.response.json().totalDays).to.equal(30));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('totalDays updated', () => pm.expect(pm.response.json().totalDays).to.equal(30));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [
@@ -371,14 +717,25 @@
               { "key": "Authorization", "value": "Bearer {{adminToken}}" }
             ],
             "body": { "mode": "raw", "raw": "{\n  \"totalDays\": 30\n}" },
-            "url": { "raw": "{{baseUrl}}/api/admin/allowances/{{employeeId}}", "host": ["{{baseUrl}}"], "path": ["api","admin","allowances","{{employeeId}}"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/allowances/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "allowances", "{{employeeId}}"]
+            }
           }
         },
         {
           "name": "Amend Allowance - Employee Forbidden (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 403', () => pm.response.to.have.status(403));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [
@@ -386,7 +743,11 @@
               { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
             ],
             "body": { "mode": "raw", "raw": "{\n  \"totalDays\": 30\n}" },
-            "url": { "raw": "{{baseUrl}}/api/admin/allowances/{{employeeId}}", "host": ["{{baseUrl}}"], "path": ["api","admin","allowances","{{employeeId}}"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/allowances/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "allowances", "{{employeeId}}"]
+            }
           }
         }
       ]
@@ -396,37 +757,76 @@
       "item": [
         {
           "name": "Get All Employees",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Returns array, no password field', () => { var j = pm.response.json(); pm.expect(j).to.be.an('array'); pm.expect(j[0]).to.not.have.property('password'); });"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array, no password field', () => { var j = pm.response.json(); pm.expect(j).to.be.an('array'); pm.expect(j[0]).to.not.have.property('password'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/employees", "host": ["{{baseUrl}}"], "path": ["api","employees"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            }
           }
         },
         {
           "name": "Get Employee By ID",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-            "pm.test('Has name and email', () => { var j = pm.response.json(); pm.expect(j.name).to.be.a('string'); pm.expect(j.email).to.be.a('string'); });"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has name and email', () => { var j = pm.response.json(); pm.expect(j.name).to.be.a('string'); pm.expect(j.email).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/employees/{{employeeId}}", "host": ["{{baseUrl}}"], "path": ["api","employees","{{employeeId}}"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{employeeId}}"]
+            }
           }
         },
         {
           "name": "Get Employee - Not Found (invalid)",
-          "event": [{ "listen": "test", "script": { "exec": [
-            "pm.test('Status is 404', () => pm.response.to.have.status(404));"
-          ]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/employees/9999", "host": ["{{baseUrl}}"], "path": ["api","employees","9999"] }
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "9999"]
+            }
           }
         }
       ]

@@ -13,7 +13,10 @@ import java.util.List;
 public interface LeaveRepository extends JpaRepository<Leave, Long> {
     List<Leave> findByEmployeeId(Long employeeId);
     List<Leave> findByStatus(LeaveStatus status);
+    Page<Leave> findByStatus(LeaveStatus status, Pageable pageable);
     Page<Leave> findByStatusAndEmployeeIdIn(LeaveStatus status, List<Long> employeeIds, Pageable pageable);
+    Page<Leave> findByEmployeeId(Long employeeId, Pageable pageable);
+    Page<Leave> findByStatusAndEmployeeId(LeaveStatus status, Long employeeId, Pageable pageable);
 
     @Query("SELECT l FROM Leave l " +
            "WHERE l.status = com.example.leave.domain.model.LeaveStatus.APPROVED " +

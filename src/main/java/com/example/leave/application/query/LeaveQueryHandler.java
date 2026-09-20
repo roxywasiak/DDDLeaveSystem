@@ -15,6 +15,7 @@ import com.example.leave.domain.repository.LeaveAllowanceRepository;
 import com.example.leave.domain.repository.LeaveRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,5 +91,19 @@ public class LeaveQueryHandler {
         return leaveAllowanceRepository.findByEmployeeIdAndYear(employeeId, year)
                 .map(leaveAllowanceMapper::toDto)
                 .orElseThrow(() -> new LeaveAllowanceNotFoundException(employeeId, year));
+    }
+
+    public Page<LeaveDto> getLeavesByFilter(Long employeeId, LeaveStatus status, Pageable pageable) {
+        Pageable safe = pageable == null
+                ? PageRequest.of(0, 20)
+                : PageRequest.of(pageable.getPageNumber(), Math.min(pageable.getPageSize(), 100), pageable.getSort());
+        if (employeeId != null && status != null) {
+            return leaveRepository.findByStatusAndEmployeeId(status, employeeId, safe).map(leaveMapper::toDto);
+        } else if (employeeId != null) {
+            return leaveRepository.findByEmployeeId(employeeId, safe).map(leaveMapper::toDto);
+        } else if (status != null) {
+            return leaveRepository.findByStatus(status, safe).map(leaveMapper::toDto);
+        }
+        return leaveRepository.findAll(safe).map(leaveMapper::toDto);
     }
 }

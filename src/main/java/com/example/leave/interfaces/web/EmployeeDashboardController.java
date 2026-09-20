@@ -1,12 +1,15 @@
 package com.example.leave.interfaces.web;
 
 import com.example.leave.application.dto.EmployeeDto;
+import com.example.leave.application.exception.EmployeeNotFoundException;
 import com.example.leave.application.facade.LeaveContextFacade;
 import com.example.leave.infrastructure.security.JwtService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +19,7 @@ import java.util.Arrays;
 @Controller
 @RequestMapping("/employee")
 @RequiredArgsConstructor
+@Slf4j
 public class EmployeeDashboardController {
 
     private final LeaveContextFacade facade;
@@ -36,7 +40,8 @@ public class EmployeeDashboardController {
                     .findFirst().orElse(null);
             if (token == null) return null;
             return facade.getEmployeeByEmail(jwtService.extractEmail(token));
-        } catch (Exception e) {
+        } catch (JwtException | EmployeeNotFoundException e) {
+            log.warn("Could not resolve current employee from JWT", e);
             return null;
         }
     }

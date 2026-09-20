@@ -10,6 +10,7 @@ import com.example.leave.application.exception.LeaveRequestNotFoundException;
 import com.example.leave.application.mapper.LeaveAllowanceMapper;
 import com.example.leave.application.mapper.LeaveMapper;
 import com.example.leave.domain.event.LeaveApprovedEvent;
+import com.example.leave.domain.event.LeaveCancelledEvent;
 import com.example.leave.domain.event.LeaveRejectedEvent;
 import com.example.leave.domain.model.Leave;
 import com.example.leave.domain.model.RejectionReason;
@@ -84,7 +85,9 @@ public class LeaveCommandHandler {
             allowance.restore(leave.getDurationInDays());
             leaveAllowanceRepository.save(allowance);
         }
-        return leaveMapper.toDto(leaveRepository.save(leave));
+        LeaveDto dto = leaveMapper.toDto(leaveRepository.save(leave));
+        eventPublisher.publishEvent(new LeaveCancelledEvent(leave.getId(), leave.getEmployeeId()));
+        return dto;
     }
 
     private Leave findLeaveOrThrow(Long id) {

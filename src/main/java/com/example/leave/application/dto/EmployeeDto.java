@@ -12,4 +12,5 @@ public class EmployeeDto {
     private String name;
     private Role role;
     private Long managerId;
+    private String department;
 }

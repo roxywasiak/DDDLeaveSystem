@@ -55,7 +55,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
-            log.debug("Invalid JWT token: {}", e.getMessage());
+            log.warn("Invalid JWT token: {}", e.getMessage(), e);
         }
         filterChain.doFilter(request, response);
     }

@@ -5,6 +5,7 @@ import com.example.leave.application.command.LeaveCommandHandler;
 import com.example.leave.application.dto.*;
 import com.example.leave.application.query.EmployeeQueryHandler;
 import com.example.leave.application.query.LeaveQueryHandler;
+import com.example.leave.domain.model.LeaveStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -95,5 +96,19 @@ public class LeaveContextFacade {
 
     public EmployeeDto getEmployeeByEmail(String email) {
         return employeeQueryHandler.getEmployeeByEmail(email);
+    }
+
+    // Admin employee management
+    public EmployeeDto adminCreateEmployee(AdminCreateEmployeeCommand command) {
+        return authCommandHandler.adminCreateEmployee(command);
+    }
+
+    public EmployeeDto amendEmployee(Long employeeId, AmendEmployeeCommand command) {
+        return authCommandHandler.amendEmployee(employeeId, command);
+    }
+
+    // Admin leave filter
+    public Page<LeaveDto> getLeavesByFilter(Long employeeId, LeaveStatus status, Pageable pageable) {
+        return leaveQueryHandler.getLeavesByFilter(employeeId, status, pageable);
     }
 }

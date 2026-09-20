@@ -31,8 +31,22 @@ public class Employee {
     @Column
     private Long managerId;
 
+    @Column
+    private String department;
+
     public void assignManager(Long managerId) {
         this.managerId = managerId;
+    }
+
+    public void updateRoleAndDepartment(Role role, String department) {
+        if (role == null) throw new IllegalArgumentException("Role is required");
+        this.role = role;
+        this.department = department;
+    }
+
+    public Employee(String email, String password, String name, Role role, String department) {
+        this(email, password, name, role);
+        this.department = department;
     }
 
     public Employee(String email, String password, String name, Role role) {

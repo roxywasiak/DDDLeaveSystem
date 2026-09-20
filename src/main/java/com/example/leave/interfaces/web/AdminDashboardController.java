@@ -2,11 +2,15 @@ package com.example.leave.interfaces.web;
 
 import com.example.leave.application.dto.AmendAllowanceCommand;
 import com.example.leave.application.dto.EmployeeDto;
+import com.example.leave.application.exception.EmployeeNotFoundException;
+import com.example.leave.application.exception.LeaveAllowanceNotFoundException;
 import com.example.leave.application.facade.LeaveContextFacade;
 import com.example.leave.infrastructure.security.JwtService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +19,7 @@ import java.util.Arrays;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
+@Slf4j
 public class AdminDashboardController {
 
     private final LeaveContextFacade facade;
@@ -36,7 +41,7 @@ public class AdminDashboardController {
         try {
             facade.amendAllowance(employeeId, new AmendAllowanceCommand(totalDays));
             return "redirect:/admin/dashboard?message=Allowance+updated.";
-        } catch (Exception e) {
+        } catch (LeaveAllowanceNotFoundException | IllegalArgumentException e) {
             return "redirect:/admin/dashboard?error=" + encode(e.getMessage());
         }
     }
@@ -50,7 +55,8 @@ public class AdminDashboardController {
                     .findFirst().orElse(null);
             if (token == null) return null;
             return facade.getEmployeeByEmail(jwtService.extractEmail(token));
-        } catch (Exception e) {
+        } catch (JwtException | EmployeeNotFoundException e) {
+            log.warn("Could not resolve current employee from JWT", e);
             return null;
         }
     }
